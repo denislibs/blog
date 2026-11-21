@@ -6,15 +6,25 @@ import LikeButton from '../components/LikeButton.astro';
 import { getPosts } from '../lib/posts';
 
 const posts = await getPosts();
+// теги для фильтра: по убыванию числа постов
+const tagCounts = new Map<string, number>();
+posts.forEach((p) => p.data.tags.forEach((t) => tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1)));
+const tags = [...tagCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([t]) => t);
 ---
 <Base>
   <div class="B">
     <Profile />
     <main>
       <h2 class="B-label">Последние записи</h2>
+      {tags.length > 1 && (
+        <div class="tag-filter" role="group" aria-label="Фильтр по тегам">
+          <button type="button" data-tag="" aria-pressed="true">все</button>
+          {tags.map((t) => <button type="button" data-tag={t} aria-pressed="false">#{t}</button>)}
+        </div>
+      )}
       {posts.length === 0 && <p class="B-empty">Пока пусто. Добавь первый .md в src/content/posts.</p>}
       {posts.map((post) => (
-        <article class="B-item">
+        <article class="B-item" data-tags={post.data.tags.join(' ')}>
           <a class="cover" href={`/posts/${post.id}/`} aria-label={post.data.title}></a>
           <PostMeta post={post} />
           <h3 class="B-h" transition:name={`t-${post.id}`}><span class="u">{post.data.title}</span></h3>

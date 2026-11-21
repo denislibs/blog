@@ -169,6 +169,41 @@ export function playUnlike(btn: HTMLElement) {
   );
 }
 
+// реакция: эмодзи подпрыгивает, а при включении из кнопки вылетает фонтанчик таких же эмодзи
+export function playEmoji(btn: HTMLElement, on: boolean) {
+  if (reduceMotion.matches) return;
+  const emoji = btn.querySelector<HTMLElement>('.react-e');
+  if (!emoji) return;
+  emoji.getAnimations().forEach((a) => a.cancel());
+  emoji.animate(
+    on
+      ? [{ transform: 'scale(1)' }, { transform: 'scale(1.45) rotate(-8deg)', offset: 0.4 }, { transform: 'scale(1)' }]
+      : [{ transform: 'scale(1)' }, { transform: 'scale(.8)', offset: 0.4 }, { transform: 'scale(1)' }],
+    { duration: on ? 420 : 260, easing: 'cubic-bezier(.3,1.6,.5,1)' },
+  );
+  if (!on) return;
+  for (let i = 0; i < 7; i++) {
+    const f = document.createElement('span');
+    f.className = 'react-fly';
+    f.textContent = emoji.textContent;
+    f.setAttribute('aria-hidden', 'true');
+    btn.append(f);
+    const dx = rand(-35, 35);
+    const dy = rand(-80, -40);
+    const rot = rand(-30, 30);
+    const s = rand(0.6, 1.1);
+    playAndRemove(
+      f,
+      [
+        { transform: 'translate(0, 0) scale(.3)', opacity: 0 },
+        { transform: `translate(${dx * 0.4}px, ${dy * 0.5}px) scale(${s}) rotate(${rot / 2}deg)`, opacity: 1, offset: 0.3 },
+        { transform: `translate(${dx}px, ${dy}px) scale(${s * 0.8}) rotate(${rot}deg)`, opacity: 0 },
+      ],
+      { duration: rand(800, 1200), delay: i * 30, easing: 'cubic-bezier(.2,.6,.4,1)', fill: 'backwards' },
+    );
+  }
+}
+
 // счётчик: старое число уезжает, новое приезжает (вверх при лайке, вниз при отмене)
 export function setCount(el: HTMLElement, value: string) {
   el.dataset.value = value;

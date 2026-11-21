@@ -1,0 +1,12 @@
+---
+// Окно поиска по Ctrl+K / ⌘K. Индекс грузится из /search.json при первом открытии, логика в src/scripts/search.ts.
+---
+<dialog class="palette" id="palette" aria-label="Поиск по блогу">
+  <div class="pal-input">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+    <input id="pal-q" type="search" placeholder="Например: reflow, flutter, useEffect" autocomplete="off" aria-label="Что ищем" aria-controls="pal-list" />
+    <kbd>Esc</kbd>
+  </div>
+  <ul class="pal-list" id="pal-list" role="listbox" aria-label="Результаты"></ul>
+  <div class="pal-foot"><span><kbd>↑</kbd> <kbd>↓</kbd> выбрать</span><span><kbd>Enter</kbd> открыть</span><span><kbd>Esc</kbd> закрыть</span></div>
+</dialog>

@@ -1,8 +1,19 @@
 // Клиентская часть: лайки и кнопки «Копировать» у блоков кода.
 // Скрипт выполняется один раз; с ClientRouter страницы меняются без перезагрузки,
 // поэтому всё, что зависит от DOM, запускаем на каждом astro:page-load.
-import { playLike, playUnlike, rollCount, setCount } from './like-fx';
+import { playEmoji, playLike, playUnlike, rollCount, setCount } from './like-fx';
 import { syncThemeButton, toggleTheme } from './theme';
+import { copyText, toast } from './ui';
+// модули с отдельными функциями: каждый сам подписывается на astro:page-load
+import './post-nav';
+import './quote';
+import './terms';
+import './demos';
+import './motion-demos';
+import './reading';
+import './search';
+import './tag-filter';
+import './egg';
 
 const STORAGE_KEY = 'blog.likes';
 const counts = new Map<string, number>();
@@ -69,7 +80,8 @@ async function toggleLike(btn: HTMLButtonElement) {
   writeLiked(liked);
   if (before !== undefined) counts.set(slug, Math.max(0, before + (wasLiked ? -1 : 1)));
   paint(slug, { btn, dir: wasLiked ? -1 : 1 });
-  if (wasLiked) playUnlike(btn);
+  if (btn.dataset.fx === 'emoji') playEmoji(btn, !wasLiked);
+  else if (wasLiked) playUnlike(btn);
   else playLike(btn);
 
   try {
@@ -95,7 +107,7 @@ async function toggleLike(btn: HTMLButtonElement) {
 
 function enhanceCode() {
   document.querySelectorAll<HTMLPreElement>('.md pre').forEach((pre) => {
-    if (pre.parentElement?.classList.contains('code')) return;
+    if (pre.parentElement?.classList.contains('code') || pre.closest('.demo')) return;
     const wrap = document.createElement('div');
     wrap.className = 'code';
     pre.replaceWith(wrap);
@@ -141,6 +153,14 @@ document.addEventListener('click', (e) => {
   const themeBtn = target.closest<HTMLButtonElement>('#theme-toggle');
   if (themeBtn) {
     toggleTheme(themeBtn);
+    return;
+  }
+  // RSS: вместо того чтобы открывать XML, копируем адрес ленты для ридера
+  const rss = target.closest<HTMLAnchorElement>('[data-copy-rss]');
+  if (rss) {
+    e.preventDefault();
+    const url = new URL(rss.getAttribute('href')!, location.origin).href;
+    copyText(url).then((ok) => toast(ok ? 'Адрес RSS скопирован, вставь его в ридер' : url));
     return;
   }
   const like = target.closest<HTMLButtonElement>('[data-like]');

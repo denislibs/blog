@@ -11,16 +11,25 @@ const json = (data: unknown, status = 200) =>
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
   });
 
+// Кроме лайка у поста есть реакции. Счётчик реакции хранится под ключом `slug~kind`, лайк просто под `slug`.
+const REACTIONS = new Set(['fire', 'mind', 'eyes']);
+
 async function knownSlugs() {
   return new Set((await getPosts()).map((p) => p.id));
 }
 
-// GET /api/likes?slugs=a,b,c → { "a": 3, "b": 0, "c": 12 }
+function isValidId(id: unknown, known: Set<string>): id is string {
+  if (typeof id !== 'string') return false;
+  const [slug, kind, extra] = id.split('~');
+  return known.has(slug) && extra === undefined && (kind === undefined || REACTIONS.has(kind));
+}
+
+// GET /api/likes?slugs=a,b~fire,c → { "a": 3, "b~fire": 0, "c": 12 }
 export const GET: APIRoute = async ({ url }) => {
   const known = await knownSlugs();
   const slugs = (url.searchParams.get('slugs') ?? '')
     .split(',')
-    .filter((s) => known.has(s))
+    .filter((s) => isValidId(s, known))
     .slice(0, 100);
   return json(await getLikes(slugs));
 };
@@ -46,7 +55,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return json({ error: 'Тело запроса должно быть JSON' }, 400);
   }
   const { slug, action } = body ?? {};
-  if (typeof slug !== 'string' || !(await knownSlugs()).has(slug)) {
+  if (!isValidId(slug, await knownSlugs())) {
     return json({ error: 'Такой записи нет' }, 404);
   }
   if (action !== 'like' && action !== 'unlike') {

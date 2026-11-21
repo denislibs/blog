@@ -1,0 +1,28 @@
+---
+// Реакции под постом. Работают через тот же /api/likes, что и лайк: ключ `slug~kind`.
+interface Props {
+  slug: string;
+  title: string;
+}
+const { slug, title } = Astro.props;
+const REACTIONS = [
+  { kind: 'fire', emoji: '🔥', label: 'Огонь' },
+  { kind: 'mind', emoji: '🤯', label: 'Взорвал мозг' },
+  { kind: 'eyes', emoji: '👀', label: 'Интересно' },
+];
+---
+<div class="reacts">
+  {REACTIONS.map((r) => (
+    <button
+      type="button"
+      class="react"
+      data-like={`${slug}~${r.kind}`}
+      data-fx="emoji"
+      aria-pressed="false"
+      aria-label={`${r.label}: ${title}`}
+    >
+      <span class="react-e" aria-hidden="true">{r.emoji}</span>
+      <span class="n"></span>
+    </button>
+  ))}
+</div>

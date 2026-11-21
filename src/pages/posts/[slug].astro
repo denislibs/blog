@@ -3,47 +3,87 @@ import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import PostMeta from '../../components/PostMeta.astro';
 import LikeButton from '../../components/LikeButton.astro';
+import Reactions from '../../components/Reactions.astro';
 import { SITE } from '../../site.config';
-import { getPosts, type Post } from '../../lib/posts';
+import { getPosts, readingTime, type Post } from '../../lib/posts';
+import { coverGradient } from '../../lib/tags';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
-  return posts.map((post, i) => ({
-    params: { slug: post.id },
-    props: { post, next: posts[(i + 1) % posts.length] },
-  }));
+  return posts.map((post) => {
+    // похожие посты: сначала больше общих тегов, потом свежее
+    const related = posts
+      .filter((p) => p.id !== post.id)
+      .map((p) => ({ p, shared: p.data.tags.filter((t) => post.data.tags.includes(t)).length }))
+      .sort((a, b) => b.shared - a.shared || b.p.data.date.valueOf() - a.p.data.date.valueOf())
+      .slice(0, 2)
+      .map(({ p }) => p);
+    return { params: { slug: post.id }, props: { post, related } };
+  });
 }
 
 interface Props {
   post: Post;
-  next: Post;
+  related: Post[];
 }
-const { post, next } = Astro.props;
-const { Content } = await render(post);
+const { post, related } = Astro.props;
+const { Content, headings } = await render(post);
+// в оглавлении разделы и подразделы; если пунктов слишком много, оставляем только разделы
+const allHeadings = headings.filter((h) => (h.depth === 2 || h.depth === 3) && h.text !== 'Источники');
+const toc = allHeadings.length > 20 ? allHeadings.filter((h) => h.depth === 2) : allHeadings;
 const { author } = SITE;
 ---
-<Base title={post.data.title} description={post.data.excerpt}>
-  <div class="B-read">
-    <header class="B-bar">
-      <a class="B-me" href="/">
-        <img class="avatar" src={author.avatar} alt="" width="40" height="40" transition:name="me" />
-        <span><b>{author.name} {author.surname}</b><small>{author.role}</small></span>
-      </a>
-      <a class="B-back" href="/">← Все записи</a>
-    </header>
-    <article>
-      <h1 class="B-h1" transition:name={`t-${post.id}`}>{post.data.title}</h1>
-      <PostMeta post={post} withAuthor />
-      <div class="md"><Content /></div>
-      <div class="B-end">
-        <LikeButton slug={post.id} title={post.data.title} size="lg" />
-        {next.id !== post.id && (
-          <a class="next" href={`/posts/${next.id}/`}>
-            <small>Следующая запись</small>
-            <span>{next.data.title} →</span>
-          </a>
-        )}
-      </div>
-    </article>
+<Base title={post.data.title} description={post.data.excerpt} ogImage={`/og/${post.id}.png`}>
+  <div class="read-progress" aria-hidden="true"><span></span></div>
+  <div class="post-layout">
+    <div class="B-read">
+      <header class="B-bar">
+        <a class="B-me" href="/">
+          <img class="avatar" src={author.avatar} alt="" width="40" height="40" transition:name="me" />
+          <span><b>{author.name} {author.surname}</b><small>{author.role}</small></span>
+        </a>
+        <div class="B-bar-actions">
+          <button type="button" class="reading-toggle" id="reading-toggle" aria-pressed="false" aria-label="Режим чтения" title="Режим чтения">Aa</button>
+          <a class="B-back" href="/">← Все записи</a>
+        </div>
+      </header>
+      <article>
+        <h1 class="B-h1" transition:name={`t-${post.id}`}>{post.data.title}</h1>
+        <PostMeta post={post} withAuthor />
+        <div class="md" data-post={post.id}><Content /></div>
+        <div class="B-end">
+          <LikeButton slug={post.id} title={post.data.title} size="lg" />
+          <Reactions slug={post.id} title={post.data.title} />
+        </div>
+      </article>
+
+      {related.length > 0 && (
+        <section class="read-next" aria-label="Читать дальше">
+          <h2 class="read-next-title">Читать дальше</h2>
+          <div class="read-next-grid">
+            {related.map((p) => (
+              <a class="next-card" href={`/posts/${p.id}/`}>
+                <span class="next-cover" style={`--g: ${coverGradient(p.data.tags)}`}></span>
+                <span class="next-body">
+                  <small>{p.data.tags.map((t) => '#' + t).join(' ')}</small>
+                  <b>{p.data.title}</b>
+                  <span>{readingTime(p.body)} мин</span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+
+    {toc.length > 2 && (
+      <nav class="toc" aria-label="Содержание">
+        <span class="toc-marker" aria-hidden="true"></span>
+        <b>Содержание</b>
+        {toc.map((h) => (
+          <a href={`#${h.slug}`} data-toc={h.slug} class:list={{ sub: h.depth === 3 }}>{h.text}</a>
+        ))}
+      </nav>
+    )}
   </div>
 </Base>

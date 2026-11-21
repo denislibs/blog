@@ -1,0 +1,847 @@
+<title>Идеи для блога</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500&display=swap">
+<style>
+/* Layout: a sticky list of twelve ideas on the left, one live demo per idea on the right, all in the blog's own look. */
+:root {
+  --bg: #ffffff; --fg: #111214; --text: #43464d; --muted: #8a8d95; --line: #e8e9ec; --soft: #f2f3f5;
+  --stage: #f6f7f8; --accent: #2b55c9; --like: #ff3b5c; --code-bg: #f6f7f9; --ok: #2f9e5b; --warn: #d9822b; --bad: #e5484d;
+  --shadow: 0 12px 32px -16px rgba(17, 18, 20, .35);
+  --f-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0b0c; --fg: #ededee; --text: #a3a5ab; --muted: #73757c; --line: #1f2023; --soft: #1b1c1f;
+    --stage: #121315; --accent: #9fb2e6; --like: #ff4d6a; --code-bg: #111214; --ok: #4cc38a; --warn: #f0a35e; --bad: #ff6b6b;
+    --shadow: 0 12px 32px -14px rgba(0, 0, 0, .7); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0b0c; --fg: #ededee; --text: #a3a5ab; --muted: #73757c; --line: #1f2023; --soft: #1b1c1f;
+  --stage: #121315; --accent: #9fb2e6; --like: #ff4d6a; --code-bg: #111214; --ok: #4cc38a; --warn: #f0a35e; --bad: #ff6b6b;
+  --shadow: 0 12px 32px -14px rgba(0, 0, 0, .7); color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p { margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+.page {
+  max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 56px;
+  padding-block: 48px 96px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.side { position: sticky; top: 32px; align-self: start; display: flex; flex-direction: column; gap: 18px; }
+.side h1 { font: 500 30px/1.1 var(--f-serif); letter-spacing: -.02em; }
+.side p { font: 14px/1.55 var(--f-body); color: var(--text); }
+.side ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.side a { display: flex; gap: 10px; padding: 6px 8px; margin: 0 -8px; border-radius: 8px; text-decoration: none; color: var(--text); font: 14px/1.35 var(--f-body); }
+.side a:hover { background: var(--soft); color: var(--fg); }
+.side a span { font: 500 12px/1.6 var(--f-mono); color: var(--muted); min-width: 1.6em; }
+main { display: grid; gap: 64px; min-width: 0; }
+
+.idea { display: grid; gap: 14px; scroll-margin-top: 24px; min-width: 0; }
+.idea-head { display: flex; gap: 12px; align-items: baseline; }
+.idea-head span { font: 500 13px var(--f-mono); color: var(--muted); }
+.idea h2 { font: 500 clamp(22px, 2.6vw, 28px)/1.2 var(--f-serif); letter-spacing: -.015em; }
+.idea-desc { font: 15px/1.6 var(--f-body); color: var(--text); max-width: 66ch; }
+.stage { position: relative; border-radius: 16px; background: var(--stage); border: 1px solid var(--line); padding: 20px; min-width: 0; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg);
+  font: 500 13px var(--f-body); transition: background-color .2s, transform .15s;
+}
+.btn:hover { background: var(--soft); }
+.btn:active { transform: scale(.96); }
+.btn[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px; background: var(--soft); }
+.seg button { border: 0; background: none; cursor: pointer; padding: 7px 12px; border-radius: 999px; font: 500 13px var(--f-body); color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+kbd { font: 500 11px var(--f-mono); padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); }
+.mono { font-family: var(--f-mono); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 60;
+  transform: translate(-50%, 16px); opacity: 0; pointer-events: none;
+  padding: 10px 16px; border-radius: 999px; background: var(--fg); color: var(--bg); font: 500 13px var(--f-body);
+  transition: transform .35s cubic-bezier(.22, 1, .36, 1), opacity .25s;
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+/* 1. TOC and progress */
+.reader { height: 380px; overflow: auto; position: relative; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); overscroll-behavior: contain; }
+.progress { position: sticky; top: 0; z-index: 2; height: 3px; background: var(--line); }
+.progress span { display: block; height: 100%; background: var(--fg); transform-origin: 0 50%; transform: scaleX(0); }
+.reader-grid { display: grid; grid-template-columns: minmax(0, 1fr) 170px; gap: 28px; padding: 22px 24px 40px; }
+.reader-body h3 { font: 500 20px/1.25 var(--f-serif); margin: 26px 0 8px; scroll-margin-top: 16px; }
+.reader-body h3:first-child { margin-top: 0; }
+.reader-body p { font: 15px/1.7 var(--f-body); color: var(--text); margin-top: 10px; }
+.reader-toc { position: sticky; top: 22px; align-self: start; display: grid; gap: 2px; padding-left: 12px; border-left: 1px solid var(--line); }
+.reader-toc b { font: 500 11px var(--f-body); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.reader-toc a { position: relative; font: 13px/1.4 var(--f-body); color: var(--muted); text-decoration: none; padding: 4px 0; transition: color .2s; }
+.reader-toc a.on { color: var(--fg); }
+.toc-marker { position: absolute; left: -1px; top: 0; width: 2px; height: 22px; background: var(--fg); border-radius: 2px; transition: transform .35s cubic-bezier(.22, 1, .36, 1), height .35s; }
+
+/* 2. live frame demo */
+.lab-top { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; justify-content: space-between; }
+.meters { display: flex; gap: 24px; }
+.meter b { display: block; font: 500 26px/1 var(--f-mono); font-variant-numeric: tabular-nums; transition: color .3s; }
+.meter span { font: 12px var(--f-body); color: var(--muted); }
+.meter.ok b { color: var(--ok); } .meter.warn b { color: var(--warn); } .meter.bad b { color: var(--bad); }
+.tracks { margin-top: 18px; display: grid; gap: 10px; }
+.track { position: relative; height: 34px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; }
+.track small { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: 12px var(--f-body); color: var(--muted); }
+.ball { position: absolute; left: 8px; top: 7px; width: 18px; height: 18px; border-radius: 50%; background: var(--like); }
+.ball.css { background: var(--accent); animation: slide 1.6s ease-in-out infinite alternate; }
+@keyframes slide { to { transform: translateX(var(--run, 300px)); } }
+.bars { margin-top: 10px; height: 26px; overflow: hidden; display: flex; flex-wrap: wrap; gap: 1px; opacity: .45; }
+.bars i { display: block; height: 2px; width: 60px; background: var(--muted); }
+.lab-note { margin-top: 10px; font: 13px/1.5 var(--f-body); color: var(--muted); }
+
+/* 3. search palette */
+dialog.palette {
+  width: min(560px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 16px;
+  background: var(--bg); color: var(--fg); box-shadow: var(--shadow); margin-top: 12vh;
+}
+dialog.palette[open] { animation: pal-in .28s cubic-bezier(.22, 1, .36, 1); }
+dialog.palette::backdrop { background: rgba(10, 10, 12, .35); backdrop-filter: blur(3px); }
+@keyframes pal-in { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+.pal-input { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.pal-input input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--fg); font: 16px var(--f-body); }
+.pal-list { list-style: none; margin: 0; padding: 8px; max-height: 340px; overflow: auto; }
+.pal-list li { padding: 10px 12px; border-radius: 10px; cursor: pointer; display: grid; gap: 3px; }
+.pal-list li[aria-selected="true"] { background: var(--soft); }
+.pal-list b { font: 500 15px/1.3 var(--f-serif); }
+.pal-list span { font: 13px/1.45 var(--f-body); color: var(--muted); }
+.pal-list mark { background: color-mix(in srgb, var(--like) 22%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.pal-empty { padding: 18px; color: var(--muted); font-size: 14px; }
+.pal-foot { display: flex; gap: 14px; padding: 10px 16px; border-top: 1px solid var(--line); font: 12px var(--f-body); color: var(--muted); flex-wrap: wrap; }
+
+/* 4. tag filter */
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.tag-row button { border: 1px solid var(--line); background: var(--bg); cursor: pointer; padding: 6px 12px; border-radius: 999px; font: 500 13px var(--f-mono); color: var(--muted); transition: all .2s; }
+.tag-row button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.card { padding: 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); display: grid; gap: 8px; }
+.card b { font: 500 16px/1.25 var(--f-serif); }
+.card span { font: 12px var(--f-mono); color: var(--muted); }
+
+/* 5. anchors, rss, preview */
+.anchor-demo { display: grid; gap: 18px; }
+.anchored { position: relative; display: flex; align-items: center; gap: 8px; }
+.anchored h3 { font: 500 24px/1.2 var(--f-serif); }
+.hash { opacity: 0; transform: translateX(-4px); border: 0; background: none; cursor: pointer; color: var(--muted); font: 500 20px var(--f-mono); padding: 0 4px; transition: opacity .2s, transform .25s; }
+.anchored:hover .hash, .hash:focus-visible { opacity: 1; transform: none; }
+@media (hover: none) { .hash { opacity: 1; transform: none; } }
+.share-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.msg { justify-self: start; max-width: 340px; padding: 10px 12px 12px; border-radius: 14px 14px 14px 4px; background: var(--bg); border: 1px solid var(--line); font: 14px/1.45 var(--f-body); display: grid; gap: 8px; }
+.msg a { color: var(--accent); word-break: break-all; }
+.og { border-left: 3px solid var(--accent); padding-left: 10px; display: grid; gap: 4px; }
+.og small { font: 600 12px var(--f-body); color: var(--accent); }
+.og b { font: 600 14px/1.3 var(--f-body); }
+.og span { font: 13px/1.4 var(--f-body); color: var(--text); }
+.og-img { margin-top: 6px; aspect-ratio: 1200 / 630; max-width: 100%; border-radius: 8px; background: #0b0b0c; color: #ededee; padding: 6% 7%; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; position: relative; }
+.og-img::after { content: ""; position: absolute; right: -12%; top: -30%; width: 55%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(255, 59, 92, .45), transparent 65%); }
+.og-img strong { font: 500 clamp(14px, 2.6vw, 20px)/1.15 var(--f-serif); max-width: 85%; position: relative; z-index: 1; }
+.og-img em { font: normal 500 11px var(--f-mono); color: #a3a5ab; display: flex; align-items: center; gap: 8px; position: relative; z-index: 1; }
+.og-img em i { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #d7d9de, #585c66); display: inline-block; }
+.rss { display: grid; gap: 8px; justify-items: start; }
+.rss code { font: 12.5px var(--f-mono); padding: 8px 10px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); word-break: break-all; }
+
+/* 6. term cards */
+.prose { font: 16px/1.75 var(--f-body); color: var(--text); max-width: 64ch; }
+.term { border: 0; background: none; padding: 0; cursor: help; color: var(--fg); font: inherit; text-decoration: underline dotted; text-decoration-color: var(--muted); text-underline-offset: 4px; }
+.pop {
+  position: absolute; z-index: 5; width: min(280px, calc(100% - 24px)); padding: 12px 14px; border-radius: 12px;
+  background: var(--bg); border: 1px solid var(--line); box-shadow: var(--shadow); font: 13.5px/1.5 var(--f-body); color: var(--text);
+  opacity: 0; transform: translateY(6px) scale(.98); pointer-events: none; transition: opacity .18s, transform .25s cubic-bezier(.22, 1, .36, 1);
+}
+.pop.show { opacity: 1; transform: none; }
+.pop b { display: block; color: var(--fg); font: 600 13.5px var(--f-body); margin-bottom: 4px; }
+
+/* 7. runnable code */
+.run-wrap { display: grid; gap: 10px; }
+.run-code { position: relative; }
+.run-code pre { margin: 0; padding: 16px 18px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--line); overflow-x: auto; font: 13.5px/1.65 var(--f-mono); }
+.run-code .btn { position: absolute; top: 10px; right: 10px; }
+.out { list-style: none; margin: 0; padding: 12px 14px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font: 13px/1.6 var(--f-mono); min-height: 52px; display: grid; gap: 2px; }
+.out li { display: flex; gap: 12px; animation: line-in .35s cubic-bezier(.22, 1, .36, 1) both; }
+.out li em { font-style: normal; color: var(--muted); min-width: 4.5em; font-variant-numeric: tabular-nums; }
+.out .placeholder { color: var(--muted); animation: none; }
+@keyframes line-in { from { opacity: 0; transform: translateX(-6px); } }
+.k { color: #cf222e; } .s { color: #0a3069; } .f { color: #8250df; } .c { color: #6e7781; font-style: italic; }
+:root[data-theme="dark"] .k { color: #ff7b72; } :root[data-theme="dark"] .s { color: #a5d6ff; } :root[data-theme="dark"] .f { color: #d2a8ff; } :root[data-theme="dark"] .c { color: #8b949e; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .k { color: #ff7b72; } :root:not([data-theme="light"]) .s { color: #a5d6ff; }
+  :root:not([data-theme="light"]) .f { color: #d2a8ff; } :root:not([data-theme="light"]) .c { color: #8b949e; }
+}
+
+/* 8. reading mode */
+.rm { border-radius: 12px; background: var(--bg); border: 1px solid var(--line); padding: 20px; display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 28px; }
+.rm-aside { display: grid; gap: 8px; align-content: start; view-transition-name: rm-aside; }
+.rm-aside i { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #d7d9de, #585c66); display: block; }
+.rm-aside b { font: 500 15px var(--f-serif); }
+.rm-aside span { font: 12px var(--f-body); color: var(--muted); }
+.rm-article { view-transition-name: rm-article; display: grid; gap: 10px; }
+.rm-article h3 { font: 500 22px/1.2 var(--f-serif); }
+.rm-article p { font: 15px/1.7 var(--f-body); color: var(--text); }
+.rm.reading { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+.rm.reading .rm-aside { display: none; }
+.rm.reading .rm-article { max-width: 58ch; }
+.rm.reading .rm-article h3 { font-size: 28px; }
+.rm.reading .rm-article p { font-size: 18px; line-height: 1.8; color: var(--fg); }
+.rm-bar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+
+/* 9. quote share */
+.quote-text { font: 17px/1.75 var(--f-body); color: var(--text); max-width: 64ch; }
+.quote-text::selection { background: color-mix(in srgb, var(--like) 30%, transparent); color: var(--fg); }
+.qbtn {
+  position: absolute; z-index: 6; transform: translate(-50%, -100%) translateY(-8px) scale(.9); opacity: 0; pointer-events: none;
+  padding: 7px 12px; border-radius: 999px; border: 0; background: var(--fg); color: var(--bg); cursor: pointer;
+  font: 500 13px var(--f-body); white-space: nowrap; box-shadow: var(--shadow);
+  transition: opacity .18s, transform .25s cubic-bezier(.22, 1, .36, 1);
+}
+.qbtn.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -100%) translateY(-10px); }
+.qresult { margin-top: 14px; display: none; gap: 8px; }
+.qresult.show { display: grid; animation: line-in .35s cubic-bezier(.22, 1, .36, 1); }
+.qresult code { font: 12.5px var(--f-mono); padding: 8px 10px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); word-break: break-all; }
+.qresult small { font: 13px var(--f-body); color: var(--muted); }
+
+/* 10. reactions */
+.reacts { display: flex; flex-wrap: wrap; gap: 8px; }
+.react {
+  position: relative; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg);
+  font: 500 14px var(--f-mono); color: var(--muted); transition: border-color .2s, background-color .2s, transform .15s;
+}
+.react:active { transform: scale(.94); }
+.react[aria-pressed="true"] { color: var(--fg); border-color: color-mix(in srgb, var(--like) 55%, var(--line)); background: color-mix(in srgb, var(--like) 8%, var(--bg)); }
+.react .e { font-size: 17px; line-height: 1; display: inline-block; }
+.react .n { display: inline-grid; height: 1.2em; line-height: 1.2em; overflow: hidden; min-width: 2ch; }
+.react .n > span { grid-area: 1 / 1; }
+.fly { position: absolute; left: 14px; top: 6px; font-size: 16px; pointer-events: none; }
+
+/* 11. read next */
+.next-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.next-card { display: grid; border-radius: 14px; overflow: hidden; background: var(--bg); border: 1px solid var(--line); text-decoration: none; color: inherit; transition: transform .3s cubic-bezier(.22, 1, .36, 1), box-shadow .3s; }
+.next-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.cover { height: 96px; position: relative; overflow: hidden; }
+.cover::before { content: ""; position: absolute; inset: -20%; background: var(--g); transition: transform .6s cubic-bezier(.22, 1, .36, 1); }
+.next-card:hover .cover::before { transform: scale(1.08) rotate(2deg); }
+.next-card div { padding: 14px; display: grid; gap: 6px; }
+.next-card small { font: 500 12px var(--f-body); color: var(--muted); }
+.next-card b { font: 500 17px/1.25 var(--f-serif); }
+.next-card span { font: 12px var(--f-mono); color: var(--muted); }
+
+/* 12. easter egg */
+.egg { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.keys { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.keys kbd.hit { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.fps-hud {
+  position: fixed; z-index: 70; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  width: 220px; padding: 10px 12px; border-radius: 12px; background: #0b0b0c; color: #ededee; border: 1px solid #26272b;
+  font: 12px var(--f-mono); box-shadow: 0 16px 40px -16px rgba(0, 0, 0, .7);
+  transform: translateY(20px); opacity: 0; pointer-events: none; transition: transform .35s cubic-bezier(.22, 1, .36, 1), opacity .25s;
+}
+.fps-hud.show { transform: none; opacity: 1; pointer-events: auto; }
+.fps-hud header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.fps-hud b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.fps-hud button { border: 0; background: none; color: #a3a5ab; cursor: pointer; font: 12px var(--f-mono); }
+.fps-hud canvas { display: block; width: 100%; height: 48px; }
+.fps-hud small { color: #73757c; }
+
+@media (max-width: 900px) {
+  .page { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 32px; }
+  .side { position: static; }
+  .side ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reader-grid { grid-template-columns: minmax(0, 1fr); }
+  .reader-toc { display: none; }
+  .share-row, .next-grid { grid-template-columns: minmax(0, 1fr); }
+  .rm { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<div class="page">
+  <aside class="side">
+    <h1>Идеи для блога</h1>
+    <p>Двенадцать живых прототипов. Всё можно потрогать: прокручивать, нажимать, выделять текст.</p>
+    <ol>
+      <li><a href="#i-toc"><span>1</span>Оглавление</a></li>
+      <li><a href="#i-lab"><span>2</span>Живое демо</a></li>
+      <li><a href="#i-search"><span>3</span>Поиск ⌘K</a></li>
+      <li><a href="#i-tags"><span>4</span>Фильтр по тегам</a></li>
+      <li><a href="#i-share"><span>5</span>Якоря и превью</a></li>
+      <li><a href="#i-terms"><span>6</span>Карточки терминов</a></li>
+      <li><a href="#i-run"><span>7</span>Запуск кода</a></li>
+      <li><a href="#i-read"><span>8</span>Режим чтения</a></li>
+      <li><a href="#i-quote"><span>9</span>Цитаты</a></li>
+      <li><a href="#i-react"><span>10</span>Реакции</a></li>
+      <li><a href="#i-next"><span>11</span>Читать дальше</a></li>
+      <li><a href="#i-egg"><span>12</span>Пасхалка</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <!-- 1 -->
+    <section class="idea" id="i-toc">
+      <div class="idea-head"><span>1</span><h2>Оглавление и прогресс чтения</h2></div>
+      <p class="idea-desc">Сбоку закреплено оглавление, текущий раздел подсвечивается, маркер переезжает за ним. Сверху тонкая полоска показывает, сколько прочитано. Прокрути текст внутри рамки.</p>
+      <div class="stage">
+        <div class="reader" id="reader">
+          <div class="progress"><span id="progress-bar"></span></div>
+          <div class="reader-grid">
+            <article class="reader-body" id="reader-body">
+              <h3 id="r1">Как браузер рисует кадр</h3>
+              <p>Каждый кадр проходит пять этапов: JavaScript, стили, вёрстка, отрисовка и сборка слоёв. Чем раньше в этой цепочке начинается работа, которую запустила анимация, тем дороже обходится кадр.</p>
+              <p>Почти всё это происходит в главном потоке, где выполняется и наш код. Пока он занят, всё остальное ждёт.</p>
+              <h3 id="r2">Что анимировать</h3>
+              <p>Дешевле всего обходятся transform и opacity: они меняют только последний этап, сборку слоёв, и работают в отдельном потоке композитора.</p>
+              <p>Почти для каждого дорогого свойства есть замена: вместо top двигаем через translate, вместо тени анимируем прозрачность готового слоя.</p>
+              <h3 id="r3">Лишний reflow</h3>
+              <p>Если код сначала меняет стили, а потом читает размеры, браузеру приходится считать вёрстку прямо посреди кода. В цикле это превращается в layout thrashing.</p>
+              <p>Лечится планировщиком с фазами measure и mutate: сначала все чтения, потом все записи.</p>
+              <h3 id="r4">Цикл анимации</h3>
+              <p>На 120 Гц requestAnimationFrame вызывается вдвое чаще, поэтому прогресс анимации считаем от прошедшего времени, а не от числа кадров.</p>
+              <p>Один цикл на всё приложение, внутри кадра только записи, а невидимые анимации ставим на паузу.</p>
+              <h3 id="r5">Как измерять</h3>
+              <p>Каждую анимацию проверяем в профайлере с замедлением процессора в четыре раза. На мощном ноутбуке всё выглядит плавно, а пользователи сидят не только на них.</p>
+              <p>На ревью смотрим на конкретные цифры: не больше 4 мс скрипта в кадре и ни одного принудительного reflow.</p>
+            </article>
+            <nav class="reader-toc" id="reader-toc" aria-label="Оглавление">
+              <span class="toc-marker" id="toc-marker"></span>
+              <b>Содержание</b>
+              <a href="#r1" data-t="r1">Как браузер рисует кадр</a>
+              <a href="#r2" data-t="r2">Что анимировать</a>
+              <a href="#r3" data-t="r3">Лишний reflow</a>
+              <a href="#r4" data-t="r4">Цикл анимации</a>
+              <a href="#r5" data-t="r5">Как измерять</a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="idea" id="i-lab">
+      <div class="idea-head"><span>2</span><h2>Живое демо в статье</h2></div>
+      <p class="idea-desc">Пример того, что можно вставить прямо в гайдлайн. Переключи режим и посмотри, как падают кадры, когда код читает и пишет DOM вперемешку. Красный шарик двигает JavaScript в главном потоке, синий двигает CSS в потоке композитора, и он не дёргается.</p>
+      <div class="stage">
+        <div class="lab-top">
+          <div class="seg" id="lab-mode" role="group" aria-label="Режим нагрузки">
+            <button type="button" id="lab-idle" data-m="idle" aria-pressed="true">Без нагрузки</button>
+            <button type="button" id="lab-thrash" data-m="thrash" aria-pressed="false">Вперемешку</button>
+            <button type="button" id="lab-batch" data-m="batch" aria-pressed="false">Планировщик</button>
+          </div>
+          <div class="meters">
+            <div class="meter ok" id="m-fps"><b id="fps">60</b><span>кадров в секунду</span></div>
+            <div class="meter ok" id="m-work"><b id="work">0</b><span>мс работы в кадре</span></div>
+          </div>
+        </div>
+        <div class="tracks" id="tracks">
+          <div class="track"><span class="ball" id="ball-js"></span><small>JavaScript, главный поток</small></div>
+          <div class="track"><span class="ball css" id="ball-css"></span><small>CSS, композитор</small></div>
+        </div>
+        <div class="bars" id="bars" aria-hidden="true"></div>
+        <p class="lab-note" id="lab-note">Сейчас в кадре нет лишней работы.</p>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="idea" id="i-search">
+      <div class="idea-head"><span>3</span><h2>Поиск по ⌘K</h2></div>
+      <p class="idea-desc">Палитра поиска по всем постам, открывается по Ctrl+K или ⌘K в любом месте блога. Совпадения подсвечиваются, стрелками можно выбрать пост, Enter открывает. В настоящем блоге индекс строит Pagefind при сборке.</p>
+      <div class="stage">
+        <button type="button" class="btn" id="open-search">Найти в блоге <kbd>Ctrl</kbd><kbd>K</kbd></button>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="idea" id="i-tags">
+      <div class="idea-head"><span>4</span><h2>Фильтр по тегам</h2></div>
+      <p class="idea-desc">Нажимаешь тег, и посты перестраиваются через FLIP: каждая карточка плавно едет на новое место, лишние исчезают, нужные проявляются.</p>
+      <div class="stage">
+        <div class="tag-row" id="tag-row" role="group" aria-label="Теги"></div>
+        <div class="cards" id="cards"></div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="idea" id="i-share">
+      <div class="idea-head"><span>5</span><h2>Якоря, RSS и превью ссылок</h2></div>
+      <p class="idea-desc">У каждого заголовка появляется значок #, который копирует ссылку прямо на раздел. Есть RSS для тех, кто читает блоги в ридерах. А для каждого поста автоматически рисуется картинка-превью: так ссылка выглядит в мессенджере.</p>
+      <div class="stage anchor-demo">
+        <div class="anchored"><h3 id="kak-brauzer-risuet-kadr">Как браузер рисует кадр</h3><button type="button" class="hash" id="hash-btn" aria-label="Скопировать ссылку на раздел">#</button></div>
+        <div class="share-row">
+          <div class="msg">
+            <span>Глянь, тут хорошо объяснено про кадры <a href="#i-share">твой-домен/posts/perf-120fps/</a></span>
+            <div class="og">
+              <small>Денис — блог</small>
+              <b>Перформанс-гайдлайн: анимации на 120 fps</b>
+              <span>На экране 120 Гц у кадра всего 8,3 мс. Разбираемся, как браузер рисует кадр.</span>
+              <div class="og-img"><strong>Перформанс-гайдлайн: анимации на 120 fps</strong><em><i></i>Денис · 33 мин · #perf</em></div>
+            </div>
+          </div>
+          <div class="rss">
+            <button type="button" class="btn" id="rss-btn"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="19" r="2.5" fill="currentColor"/><path d="M3 10a11 11 0 0 1 11 11M3 3a18 18 0 0 1 18 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>Подписаться через RSS</button>
+            <code>твой-домен/rss.xml</code>
+            <span class="idea-desc" style="font-size:13px">Кнопка копирует адрес ленты. Его вставляют в Feedly, Reeder, NetNewsWire или в Telegram-бота для RSS.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="idea" id="i-terms">
+      <div class="idea-head"><span>6</span><h2>Карточки терминов</h2></div>
+      <p class="idea-desc">Термины в тексте подчёркнуты пунктиром. Наводишь или нажимаешь, и рядом появляется короткое объяснение. Так читателю не надо уходить из статьи, а автору не надо раздувать текст определениями.</p>
+      <div class="stage" id="terms-stage">
+        <p class="prose">Когда приходит <button type="button" class="term" data-term="vsync">vsync</button>, браузер начинает новый кадр. Если перед этим код прочитал размеры элемента после записи стилей, случится <button type="button" class="term" data-term="reflow">принудительный reflow</button>, и вёрстка посчитается прямо посреди кода. Анимации на transform этого не боятся: их ведёт <button type="button" class="term" data-term="comp">композитор</button>, отдельный поток браузера.</p>
+        <div class="pop" id="term-pop" role="tooltip"></div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="idea" id="i-run">
+      <div class="idea-head"><span>7</span><h2>Код, который можно запустить</h2></div>
+      <p class="idea-desc">У примеров появляется кнопка «Запустить», и результат выводится прямо под кодом. Этот пример из статьи про рендер показывает порядок задач, микрозадач и кадра. Запусти несколько раз: setTimeout и requestAnimationFrame иногда меняются местами.</p>
+      <div class="stage run-wrap">
+        <div class="run-code">
+<pre><code>console.<span class="f">log</span>(<span class="s">'обычный код'</span>);
+<span class="f">setTimeout</span>(() =&gt; console.<span class="f">log</span>(<span class="s">'задача: setTimeout'</span>), <span class="k">0</span>);
+<span class="f">requestAnimationFrame</span>(() =&gt; console.<span class="f">log</span>(<span class="s">'перед кадром: rAF'</span>));
+Promise.<span class="f">resolve</span>().<span class="f">then</span>(() =&gt; console.<span class="f">log</span>(<span class="s">'микрозадача'</span>));</code></pre>
+          <button type="button" class="btn" id="run-btn">▶ Запустить</button>
+        </div>
+        <ol class="out" id="run-out"><li class="placeholder">Здесь появится вывод</li></ol>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="idea" id="i-read">
+      <div class="idea-head"><span>8</span><h2>Режим чтения</h2></div>
+      <p class="idea-desc">Одна кнопка прячет профиль и всё лишнее, делает шрифт крупнее, а колонку уже. Переход сделан на View Transitions, как смена страниц в блоге.</p>
+      <div class="stage">
+        <div class="rm-bar"><button type="button" class="btn" id="rm-btn" aria-pressed="false">Режим чтения</button></div>
+        <div class="rm" id="rm">
+          <div class="rm-aside"><i></i><b>Денис Фамилия</b><span>Frontend-разработчик</span></div>
+          <div class="rm-article">
+            <h3>Кто ждёт кадра</h3>
+            <p>Веб-фреймворки почти все применяют изменения сразу, как только могут. А нативные давно договорились, что вся работа идёт строго по сигналу экрана.</p>
+            <p>Flutter, UIKit, SwiftUI и Jetpack Compose только помечают изменения, а всю работу делают в начале кадра, и каждый этап выполняется один раз.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="idea" id="i-quote">
+      <div class="idea-head"><span>9</span><h2>Поделиться цитатой</h2></div>
+      <p class="idea-desc">Выдели любой кусок текста ниже. Появится кнопка, которая соберёт ссылку прямо на эту фразу. Браузер, открыв такую ссылку, сам прокрутит к фразе и подсветит её.</p>
+      <div class="stage" id="quote-stage">
+        <p class="quote-text" id="quote-text">Главное отличие не в фреймворках, а в синхронном DOM. В нативе нельзя случайно заставить систему пересчитать вёрстку посреди кадра, а в вебе можно. Поэтому в вебе дисциплину кадра приходится добавлять самим: планировщиком, как в Teact, или настройкой Preact.</p>
+        <button type="button" class="qbtn" id="qbtn">Поделиться цитатой</button>
+        <div class="qresult" id="qresult"><code id="qlink"></code><small>Ссылка скопирована. Попробуй вставить её в браузер на настоящей странице блога.</small></div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="idea" id="i-react">
+      <div class="idea-head"><span>10</span><h2>Реакции под постом</h2></div>
+      <p class="idea-desc">Кроме лайка несколько реакций. Счётчики хранятся на сервере, как у лайков, а при нажатии из кнопки вылетает маленький фонтан.</p>
+      <div class="stage">
+        <div class="reacts" id="reacts"></div>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="idea" id="i-next">
+      <div class="idea-head"><span>11</span><h2>Читать дальше</h2></div>
+      <p class="idea-desc">В конце поста две похожие статьи по общим тегам, с обложкой, которую блог рисует сам из цвета тега.</p>
+      <div class="stage">
+        <div class="next-grid">
+          <a class="next-card" href="#i-next"><span class="cover" style="--g: radial-gradient(circle at 20% 30%, #ff5fa2, transparent 45%), radial-gradient(circle at 80% 70%, #ff7a45, transparent 50%), #2b1020;"></span><div><small>Читать дальше · #perf</small><b>Перформанс-гайдлайн: анимации на 120 fps</b><span>33 мин</span></div></a>
+          <a class="next-card" href="#i-next"><span class="cover" style="--g: radial-gradient(circle at 75% 25%, #6cc6ff, transparent 45%), radial-gradient(circle at 25% 80%, #9b6bff, transparent 50%), #101833;"></span><div><small>Читать дальше · #react</small><b>Детокс от useEffect</b><span>7 мин</span></div></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section class="idea" id="i-egg">
+      <div class="idea-head"><span>12</span><h2>Пасхалка: режим 120 fps</h2></div>
+      <p class="idea-desc">Набери на клавиатуре код Konami, и в углу появится панель с частотой кадров и графиком времени каждого кадра, как в DevTools. Для блога про производительность самое то.</p>
+      <div class="stage egg">
+        <span class="keys" id="keys"><kbd>↑</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>←</kbd><kbd>→</kbd><kbd>B</kbd><kbd>A</kbd></span>
+        <button type="button" class="btn" id="egg-btn">или включить кнопкой</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<dialog class="palette" id="palette" aria-label="Поиск по блогу">
+  <div class="pal-input">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="pal-q" type="search" placeholder="Например: reflow, flutter, useEffect" autocomplete="off" aria-label="Поиск">
+    <kbd>Esc</kbd>
+  </div>
+  <ul class="pal-list" id="pal-list" role="listbox" aria-label="Результаты"></ul>
+  <div class="pal-foot"><span><kbd>↑</kbd> <kbd>↓</kbd> выбрать</span><span><kbd>Enter</kbd> открыть</span><span><kbd>Esc</kbd> закрыть</span></div>
+</dialog>
+
+<div class="fps-hud" id="fps-hud" aria-live="off">
+  <header><span><b id="hud-fps">0</b> fps</span><button type="button" id="hud-close">закрыть ✕</button></header>
+  <canvas id="hud-canvas" width="440" height="96"></canvas>
+  <small>зелёная линия: бюджет кадра 8,3 мс</small>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  let toastTimer;
+  function toast(text) {
+    const t = $('toast');
+    t.textContent = text; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+  async function copy(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch { return false; }
+  }
+  const POSTS = [
+    { t: 'Перформанс-гайдлайн: анимации на 120 fps', e: 'Бюджет кадра, что анимировать без reflow, планировщик measure и mutate, contain.', tags: ['perf', 'css', 'react'] },
+    { t: 'Кто ждёт кадра: как рендерят React, Vue, Flutter, SwiftUI и Compose', e: 'Веб-фреймворки применяют изменения сразу, нативные ждут vsync.', tags: ['perf', 'react', 'flutter'] },
+    { t: 'Как устроен этот блог', e: 'Markdown, Astro, git push и лайки на маленьком сервере.', tags: ['meta', 'tools'] },
+    { t: 'Детокс от useEffect', e: 'Было 214 эффектов, стало 38. Производное состояние, события, загрузка данных.', tags: ['react'] },
+    { t: 'Индексы в Postgres, которые я понял слишком поздно', e: 'Составные и частичные индексы, EXPLAIN ANALYZE.', tags: ['sql'] },
+    { t: 'Мой сетап в 2026', e: 'Ghostty, fish, tmux, Neovim и пара алиасов.', tags: ['tools'] },
+    { t: 'git rebase без страха', e: 'rebase, reflog и правило не трогать общую main.', tags: ['tools'] },
+    { t: 'Тёмная тема с кругом из кнопки', e: 'View Transitions, clip-path и тема без вспышки при загрузке.', tags: ['css', 'perf'] },
+  ];
+
+  /* ---------- 1. TOC + progress ---------- */
+  (() => {
+    const reader = $('reader'), bar = $('progress-bar'), marker = $('toc-marker');
+    const links = [...$('reader-toc').querySelectorAll('a')];
+    const heads = links.map((a) => $(a.dataset.t));
+    let pending = false, active = '';
+    function update() {
+      pending = false;
+      const max = reader.scrollHeight - reader.clientHeight;
+      bar.style.transform = `scaleX(${max > 0 ? reader.scrollTop / max : 0})`;
+      let cur = heads[0];
+      for (const h of heads) if (h.offsetTop - reader.scrollTop <= 90) cur = h;
+      if (reader.scrollTop >= max - 2) cur = heads[heads.length - 1];
+      if (cur.id !== active) {
+        active = cur.id;
+        links.forEach((a) => a.classList.toggle('on', a.dataset.t === active));
+        const a = links.find((x) => x.dataset.t === active);
+        marker.style.height = a.offsetHeight + 'px';
+        marker.style.transform = `translateY(${a.offsetTop}px)`;
+      }
+    }
+    reader.addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(update); } }, { passive: true });
+    links.forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      reader.scrollTo({ top: $(a.dataset.t).offsetTop - 14, behavior: reduce.matches ? 'auto' : 'smooth' });
+    }));
+    requestAnimationFrame(update);
+  })();
+
+  /* ---------- 2. live frame demo ---------- */
+  (() => {
+    const barsBox = $('bars'), ball = $('ball-js'), tracks = $('tracks');
+    const bars = [];
+    for (let i = 0; i < 420; i++) { const b = document.createElement('i'); b.style.width = 40 + (i % 90) + 'px'; barsBox.append(b); bars.push(b); }
+    let mode = 'idle', visible = false, raf = 0, last = 0, ema = 16.7, workEma = 0, shown = 0;
+    const NOTES = {
+      idle: 'Сейчас в кадре нет лишней работы.',
+      thrash: 'Каждый кадр 420 раз: прочитать ширину, записать новую. Каждое чтение после записи заставляет браузер пересчитать вёрстку.',
+      batch: 'Та же работа, но сначала все 420 чтений, потом все записи. Вёрстка считается один раз за кадр.',
+    };
+    const next = (w) => (w >= 129 ? 40 : w + 1);
+    function frame(now) {
+      raf = requestAnimationFrame(frame);
+      if (last) ema = ema * .9 + (now - last) * .1;
+      last = now;
+      const run = Math.max(60, tracks.clientWidth - 220);
+      const x = (Math.sin(now / 520) * .5 + .5) * run;
+      const t0 = performance.now();
+      if (mode === 'thrash') {
+        for (const b of bars) b.style.width = next(b.offsetWidth) + 'px';
+      } else if (mode === 'batch') {
+        const ws = bars.map((b) => b.offsetWidth);
+        bars.forEach((b, i) => { b.style.width = next(ws[i]) + 'px'; });
+      }
+      workEma = workEma * .85 + (performance.now() - t0) * .15;
+      ball.style.transform = `translateX(${x}px)`;
+      if (now - shown > 250) {
+        shown = now;
+        const fps = Math.min(240, Math.round(1000 / ema));
+        $('fps').textContent = fps;
+        $('work').textContent = workEma < 10 ? workEma.toFixed(1) : Math.round(workEma);
+        $('m-fps').className = 'meter ' + (fps >= 55 ? 'ok' : fps >= 35 ? 'warn' : 'bad');
+        $('m-work').className = 'meter ' + (workEma <= 4 ? 'ok' : workEma <= 12 ? 'warn' : 'bad');
+        document.documentElement.style.setProperty('--run', run + 'px');
+      }
+    }
+    new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      if (visible && !raf) { last = 0; raf = requestAnimationFrame(frame); }
+      if (!visible && raf) { cancelAnimationFrame(raf); raf = 0; }
+    }).observe($('i-lab'));
+    $('lab-mode').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-m]'); if (!b) return;
+      mode = b.dataset.m;
+      $('lab-mode').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      $('lab-note').textContent = NOTES[mode];
+    });
+  })();
+
+  /* ---------- 3. search palette ---------- */
+  (() => {
+    const dlg = $('palette'), q = $('pal-q'), list = $('pal-list');
+    let results = [], sel = 0;
+    const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    function mark(text, words) {
+      let html = esc(text);
+      for (const w of words) {
+        if (!w) continue;
+        const re = new RegExp('(' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+        html = html.replace(re, '<mark>$1</mark>');
+      }
+      return html;
+    }
+    function search() {
+      const words = q.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      results = POSTS.map((p) => {
+        const hay = (p.t + ' ' + p.e + ' ' + p.tags.join(' ')).toLowerCase();
+        if (!words.every((w) => hay.includes(w))) return null;
+        const score = words.reduce((s, w) => s + (p.t.toLowerCase().includes(w) ? 3 : 0) + (p.tags.some((t) => t.includes(w)) ? 2 : 0) + 1, 0);
+        return { p, score };
+      }).filter(Boolean).sort((a, b) => b.score - a.score).map((r) => r.p);
+      sel = 0;
+      list.innerHTML = results.length
+        ? results.map((p, i) => `<li role="option" id="pal-opt-${i}" aria-selected="${i === 0}"><b>${mark(p.t, words)}</b><span>${mark(p.e, words)} · #${p.tags.join(' #')}</span></li>`).join('')
+        : '<li class="pal-empty">Ничего не нашлось. Попробуй «кадр» или «react».</li>';
+    }
+    function select(i) {
+      if (!results.length) return;
+      sel = (i + results.length) % results.length;
+      list.querySelectorAll('li[role="option"]').forEach((li, k) => li.setAttribute('aria-selected', String(k === sel)));
+      list.querySelector(`#pal-opt-${sel}`)?.scrollIntoView({ block: 'nearest' });
+    }
+    function openPost(i) { if (!results[i]) return; dlg.close(); toast('Открыли «' + results[i].t + '»'); }
+    function open() { if (dlg.open) return; dlg.showModal(); q.value = ''; search(); q.focus(); }
+    $('open-search').addEventListener('click', open);
+    addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); open(); } });
+    q.addEventListener('input', search);
+    q.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); select(sel + 1); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); select(sel - 1); }
+      if (e.key === 'Enter') { e.preventDefault(); openPost(sel); }
+    });
+    list.addEventListener('click', (e) => { const li = e.target.closest('li[role="option"]'); if (li) openPost(+li.id.split('-').pop()); });
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  })();
+
+  /* ---------- 4. tag filter with FLIP ---------- */
+  (() => {
+    const row = $('tag-row'), box = $('cards');
+    const tags = ['все', 'perf', 'react', 'css', 'flutter', 'tools'];
+    row.innerHTML = tags.map((t, i) => `<button type="button" id="tag-${t}" data-tag="${t}" aria-pressed="${i === 0}">${i ? '#' + t : t}</button>`).join('');
+    box.innerHTML = POSTS.map((p, i) => `<article class="card" data-tags="${p.tags.join(' ')}"><b>${p.t}</b><span>#${p.tags.join(' #')}</span></article>`).join('');
+    const cards = [...box.children];
+    row.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-tag]'); if (!b) return;
+      row.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      const tag = b.dataset.tag;
+      const first = new Map(cards.filter((c) => !c.hidden).map((c) => [c, c.getBoundingClientRect()]));
+      cards.forEach((c) => { c.hidden = tag !== 'все' && !c.dataset.tags.split(' ').includes(tag); });
+      if (reduce.matches) return;
+      cards.forEach((c, i) => {
+        if (c.hidden) return;
+        const r = c.getBoundingClientRect(), f = first.get(c);
+        if (f) {
+          const dx = f.left - r.left, dy = f.top - r.top;
+          if (dx || dy) c.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.22,1,.36,1)' });
+        } else {
+          c.animate([{ opacity: 0, transform: 'scale(.92)' }, { opacity: 1, transform: 'none' }], { duration: 360, delay: 60 + i * 20, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+        }
+      });
+    });
+  })();
+
+  /* ---------- 5. anchors, rss ---------- */
+  $('hash-btn').addEventListener('click', async () => {
+    const ok = await copy('https://твой-домен/posts/perf-120fps/#kak-brauzer-risuet-kadr');
+    toast(ok ? 'Ссылка на раздел скопирована' : 'Ссылка: …/perf-120fps/#kak-brauzer-risuet-kadr');
+  });
+  $('rss-btn').addEventListener('click', async () => {
+    const ok = await copy('https://твой-домен/rss.xml');
+    toast(ok ? 'Адрес RSS скопирован' : 'Адрес RSS: твой-домен/rss.xml');
+  });
+
+  /* ---------- 6. term cards ---------- */
+  (() => {
+    const stage = $('terms-stage'), pop = $('term-pop');
+    const TERMS = {
+      vsync: ['Vsync', 'Сигнал от экрана «я готов показать следующий кадр». Приходит 60 или 120 раз в секунду.'],
+      reflow: ['Принудительный reflow', 'Пересчёт вёрстки посреди кода. Случается, когда код читает размеры после того, как поменял стили.'],
+      comp: ['Композитор', 'Часть браузера со своим потоком. Складывает готовые слои в картинку, поэтому transform и opacity не ждут главный поток.'],
+    };
+    let hideTimer;
+    function show(btn) {
+      clearTimeout(hideTimer);
+      const [title, text] = TERMS[btn.dataset.term];
+      pop.innerHTML = `<b>${title}</b>${text}`;
+      const s = stage.getBoundingClientRect(), r = btn.getBoundingClientRect();
+      const w = pop.offsetWidth;
+      const left = Math.max(12, Math.min(s.width - w - 12, r.left - s.left + r.width / 2 - w / 2));
+      pop.style.left = left + 'px';
+      pop.style.top = (r.bottom - s.top + 8) + 'px';
+      pop.classList.add('show');
+      btn.setAttribute('aria-describedby', 'term-pop');
+    }
+    function hide() { hideTimer = setTimeout(() => pop.classList.remove('show'), 120); }
+    stage.querySelectorAll('.term').forEach((b) => {
+      b.addEventListener('mouseenter', () => show(b));
+      b.addEventListener('mouseleave', hide);
+      b.addEventListener('focus', () => show(b));
+      b.addEventListener('blur', hide);
+      b.addEventListener('click', () => (pop.classList.contains('show') ? pop.classList.remove('show') : show(b)));
+    });
+  })();
+
+  /* ---------- 7. runnable code ---------- */
+  $('run-btn').addEventListener('click', () => {
+    const out = $('run-out');
+    out.innerHTML = '';
+    const t0 = performance.now();
+    const log = (text) => {
+      const li = document.createElement('li');
+      li.innerHTML = `<em>+${(performance.now() - t0).toFixed(1)} мс</em><span>${text}</span>`;
+      out.append(li);
+    };
+    // тот же код, что в блоке выше
+    log('обычный код');
+    setTimeout(() => log('задача: setTimeout'), 0);
+    requestAnimationFrame(() => log('перед кадром: rAF'));
+    Promise.resolve().then(() => log('микрозадача'));
+  });
+
+  /* ---------- 8. reading mode ---------- */
+  $('rm-btn').addEventListener('click', () => {
+    const btn = $('rm-btn'), rm = $('rm');
+    const on = btn.getAttribute('aria-pressed') !== 'true';
+    const apply = () => { rm.classList.toggle('reading', on); btn.setAttribute('aria-pressed', String(on)); };
+    if (document.startViewTransition && !reduce.matches) document.startViewTransition(apply); else apply();
+  });
+
+  /* ---------- 9. quote share ---------- */
+  (() => {
+    const stage = $('quote-stage'), text = $('quote-text'), qbtn = $('qbtn');
+    let picked = '';
+    function check() {
+      const s = getSelection();
+      const str = s && s.rangeCount ? s.toString().trim().replace(/\s+/g, ' ') : '';
+      if (!str || str.length < 3 || !text.contains(s.anchorNode) || !text.contains(s.focusNode)) { qbtn.classList.remove('show'); return; }
+      picked = str;
+      const r = s.getRangeAt(0).getBoundingClientRect(), st = stage.getBoundingClientRect();
+      qbtn.style.left = Math.max(80, Math.min(st.width - 80, r.left - st.left + r.width / 2)) + 'px';
+      qbtn.style.top = (r.top - st.top) + 'px';
+      qbtn.classList.add('show');
+    }
+    let t;
+    document.addEventListener('selectionchange', () => { clearTimeout(t); t = setTimeout(check, 120); });
+    qbtn.addEventListener('mousedown', (e) => e.preventDefault());
+    qbtn.addEventListener('click', async () => {
+      const link = 'https://твой-домен/posts/render-timing/#:~:text=' + encodeURIComponent(picked);
+      $('qlink').textContent = link;
+      $('qresult').classList.remove('show'); void $('qresult').offsetWidth; $('qresult').classList.add('show');
+      const ok = await copy(link);
+      if (!ok) $('qresult').querySelector('small').textContent = 'Скопировать не вышло, выдели ссылку вручную.';
+      qbtn.classList.remove('show');
+    });
+  })();
+
+  /* ---------- 10. reactions ---------- */
+  (() => {
+    const box = $('reacts');
+    const R = [['🔥', 'огонь', 12], ['🤯', 'взорвал мозг', 5], ['👀', 'интересно', 9], ['❤️', 'нравится', 48]];
+    box.innerHTML = R.map(([e, name, n], i) => `<button type="button" class="react" id="react-${i}" aria-pressed="false" aria-label="${name}"><span class="e">${e}</span><span class="n"><span>${n}</span></span></button>`).join('');
+    box.addEventListener('click', (ev) => {
+      const b = ev.target.closest('.react'); if (!b) return;
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(on));
+      const box2 = b.querySelector('.n'), old = box2.lastElementChild;
+      const nu = document.createElement('span'); nu.textContent = +old.textContent + (on ? 1 : -1); box2.append(nu);
+      if (reduce.matches) { old.remove(); return; }
+      const d = on ? 1 : -1;
+      old.animate([{ transform: 'none', opacity: 1 }, { transform: `translateY(${-100 * d}%)`, opacity: 0 }], { duration: 240, easing: 'ease-in', fill: 'forwards' }).finished.then(() => old.remove());
+      nu.animate([{ transform: `translateY(${100 * d}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 360, delay: 60, easing: 'cubic-bezier(.2,.9,.3,1.25)', fill: 'backwards' });
+      const emoji = b.querySelector('.e');
+      emoji.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.45) rotate(-8deg)', offset: .4 }, { transform: 'scale(1)' }], { duration: 420, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+      if (!on) return;
+      for (let i = 0; i < 7; i++) {
+        const f = document.createElement('span'); f.className = 'fly'; f.textContent = emoji.textContent; b.append(f);
+        const dx = (Math.random() - .5) * 70, dy = -40 - Math.random() * 40, rot = (Math.random() - .5) * 60, s = .6 + Math.random() * .5;
+        f.animate([
+          { transform: 'translate(0,0) scale(.3)', opacity: 0 },
+          { transform: `translate(${dx * .4}px, ${dy * .5}px) scale(${s}) rotate(${rot / 2}deg)`, opacity: 1, offset: .3 },
+          { transform: `translate(${dx}px, ${dy}px) scale(${s * .8}) rotate(${rot}deg)`, opacity: 0 },
+        ], { duration: 800 + Math.random() * 400, delay: i * 30, easing: 'cubic-bezier(.2,.6,.4,1)', fill: 'backwards' }).finished.then(() => f.remove());
+      }
+    });
+  })();
+
+  /* ---------- 12. easter egg: fps hud ---------- */
+  (() => {
+    const hud = $('fps-hud'), cv = $('hud-canvas'), ctx = cv.getContext('2d');
+    const keys = [...$('keys').children];
+    const CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let pos = 0, raf = 0, last = 0, times = [], shown = 0;
+    function draw(now) {
+      raf = requestAnimationFrame(draw);
+      if (last) { times.push(now - last); if (times.length > 110) times.shift(); }
+      last = now;
+      const w = cv.width, h = cv.height;
+      ctx.clearRect(0, 0, w, h);
+      const max = 34, bw = w / 110;
+      times.forEach((t, i) => {
+        const bh = Math.min(h, (t / max) * h);
+        ctx.fillStyle = t <= 9 ? '#4cc38a' : t <= 17.5 ? '#f0a35e' : '#ff6b6b';
+        ctx.fillRect(i * bw, h - bh, Math.max(1, bw - 1), bh);
+      });
+      const y = h - (8.33 / max) * h;
+      ctx.strokeStyle = '#4cc38a'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); ctx.setLineDash([]);
+      if (now - shown > 250 && times.length) {
+        shown = now;
+        const avg = times.slice(-30).reduce((a, b) => a + b, 0) / Math.min(30, times.length);
+        $('hud-fps').textContent = Math.round(1000 / avg);
+      }
+    }
+    function open() { if (hud.classList.contains('show')) return; hud.classList.add('show'); last = 0; times = []; raf = requestAnimationFrame(draw); toast('Режим 120 fps включён'); }
+    function close() { hud.classList.remove('show'); cancelAnimationFrame(raf); raf = 0; }
+    $('egg-btn').addEventListener('click', open);
+    $('hud-close').addEventListener('click', close);
+    addEventListener('keydown', (e) => {
+      if (e.target.closest && e.target.closest('input, textarea, dialog')) return;
+      const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      pos = k === CODE[pos] ? pos + 1 : k === CODE[0] ? 1 : 0;
+      keys.forEach((kb, i) => kb.classList.toggle('hit', i < pos));
+      if (pos === CODE.length) { pos = 0; setTimeout(() => keys.forEach((kb) => kb.classList.remove('hit')), 600); open(); }
+    });
+  })();
+})();
+</script>

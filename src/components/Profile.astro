@@ -10,5 +10,9 @@ const fullName = `${author.name} ${author.surname}`;
   <p class="B-bio">{author.bio}</p>
   <nav class="B-links" aria-label="Ссылки">
     {links.map((l) => <a href={l.href} target="_blank" rel="noopener">{l.label}</a>)}
+    <a href="/rss.xml" class="rss-link" data-copy-rss>
+      <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="19" r="2.5" fill="currentColor"></circle><path d="M3 10a11 11 0 0 1 11 11M3 3a18 18 0 0 1 18 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"></path></svg>
+      RSS
+    </a>
   </nav>
 </aside>
