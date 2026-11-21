@@ -1,0 +1,14 @@
+---
+import { SITE } from '../site.config';
+const { author, links } = SITE;
+const fullName = `${author.name} ${author.surname}`;
+---
+<aside class="B-aside">
+  <img class="avatar" src={author.avatar} alt={`Фото: ${fullName}`} width="104" height="104" transition:name="me" />
+  <h1 class="B-name">{fullName}</h1>
+  <p class="B-role">{author.role}</p>
+  <p class="B-bio">{author.bio}</p>
+  <nav class="B-links" aria-label="Ссылки">
+    {links.map((l) => <a href={l.href} target="_blank" rel="noopener">{l.label}</a>)}
+  </nav>
+</aside>

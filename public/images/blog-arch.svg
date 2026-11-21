@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 210" font-family="ui-monospace,Menlo,Consolas,monospace">
+  <rect width="760" height="210" fill="#ffffff"/>
+  <g fill="none" stroke="#8a8d95" stroke-width="1.5">
+    <rect x="20" y="50" width="150" height="70" rx="12"/>
+    <rect x="210" y="50" width="150" height="70" rx="12"/>
+    <rect x="400" y="50" width="150" height="70" rx="12"/>
+    <rect x="590" y="50" width="150" height="70" rx="12"/>
+    <path d="M176 85h26m-7-6 7 6-7 6"/>
+    <path d="M366 85h26m-7-6 7 6-7 6"/>
+    <path d="M556 85h26m-7-6 7 6-7 6"/>
+  </g>
+  <g fill="#43464d" font-size="15" text-anchor="middle">
+    <text x="95" y="90">posts/*.md</text>
+    <text x="285" y="90">сборка</text>
+    <text x="475" y="90">HTML + CSS</text>
+    <text x="665" y="90">CDN</text>
+  </g>
+  <g fill="#8a8d95" font-size="12" text-anchor="middle">
+    <text x="95" y="150">src/content/</text>
+    <text x="285" y="150">astro build</text>
+    <text x="475" y="150">dist/</text>
+    <text x="665" y="150">edge cache</text>
+  </g>
+</svg>

@@ -1,0 +1,25 @@
+---
+import { SITE } from '../site.config';
+import { formatDate, readingTime, type Post } from '../lib/posts';
+
+interface Props {
+  post: Post;
+  withAuthor?: boolean;
+}
+const { post, withAuthor = false } = Astro.props;
+const { date, tags } = post.data;
+---
+<div class="chips">
+  <span class="chip">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+    <time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time>
+  </span>
+  {withAuthor && (
+    <>
+      <span class="dot">·</span>
+      <span class="chip">{SITE.author.name}</span>
+    </>
+  )}
+  <span class="chip ghost">{readingTime(post.body)} мин</span>
+  {tags.map((t) => <span class="chip ghost">#{t}</span>)}
+</div>

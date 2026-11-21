@@ -1,0 +1,941 @@
+<title>Прототипы блога</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Unbounded:wght@500;600&display=swap">
+<style>
+/* Layout: three prototypes of one dev blog share data; each variant scopes its own palette.
+   A = centered dark column (reference look), B = light with sticky profile, C = index + slide-in post. */
+:root {
+  --bg: #ffffff;
+  --fg: #111214;
+  --text: #43464d;
+  --muted: #8a8d95;
+  --line: #e8e9ec;
+  --soft: #f2f3f5;
+  --accent: #2b55c9;
+  --like: #e5484d;
+  --code-bg: #f6f7f9;
+  --f-serif: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --f-wide: "Unbounded", "Inter", system-ui, sans-serif;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  color-scheme: light;
+}
+:root[data-variant="a"] {
+  --bg: #0b0b0c;
+  --fg: #ededee;
+  --text: #a3a5ab;
+  --muted: #6f7178;
+  --line: #1e1f22;
+  --soft: #1b1c1f;
+  --accent: #b9c3da;
+  --like: #ededee;
+  --code-bg: #111214;
+  color-scheme: dark;
+}
+:root[data-variant="c"] {
+  --bg: #fbfbfc;
+  --fg: #101113;
+  --text: #3f4249;
+  --muted: #868993;
+  --line: #e6e7ea;
+  --soft: #f0f1f3;
+  --accent: #d2452c;
+  --like: #d2452c;
+  --code-bg: #f3f4f6;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-variant="c"]:not([data-theme="light"]):not([data-local="light"]) {
+    --bg: #0f1012; --fg: #ececee; --text: #a9abb2; --muted: #777a83; --line: #222428;
+    --soft: #18191c; --accent: #ff7a5c; --like: #ff7a5c; --code-bg: #141517; color-scheme: dark;
+  }
+}
+:root[data-variant="c"][data-theme="dark"]:not([data-local="light"]),
+:root[data-variant="c"][data-local="dark"] {
+  --bg: #0f1012; --fg: #ececee; --text: #a9abb2; --muted: #777a83; --line: #222428;
+  --soft: #18191c; --accent: #ff7a5c; --like: #ff7a5c; --code-bg: #141517; color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--f-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .45s var(--ease), color .45s var(--ease);
+}
+html.lock { overflow: hidden; }
+::selection { background: var(--fg); color: var(--bg); }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+h1, h2, h3, p { margin: 0; }
+.avatar { border-radius: 50%; display: block; object-fit: cover; flex: none; background: var(--soft); }
+
+/* shared: cover link, chips, like */
+.cover { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 8px; border-radius: 6px;
+  background: var(--soft); color: var(--fg);
+  font: 600 13px/1.4 var(--f-body);
+}
+.chip svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; opacity: .8; }
+.chip.ghost { background: none; color: var(--muted); font-weight: 500; padding-inline: 2px; }
+.dot { color: var(--muted); font-weight: 700; }
+
+.like {
+  position: relative; z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 0; background: none; cursor: pointer;
+  padding: 6px 9px; border-radius: 999px;
+  color: var(--muted);
+  font: 500 13px/1 var(--f-mono); font-variant-numeric: tabular-nums;
+  transition: color .2s, background-color .2s;
+}
+.like:hover { color: var(--fg); background: var(--soft); }
+.like svg { width: 16px; height: 16px; fill: transparent; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; transition: fill .25s, stroke .25s; }
+.like[aria-pressed="true"] { color: var(--fg); }
+.like[aria-pressed="true"] svg { fill: var(--like); stroke: var(--like); }
+.like::before {
+  content: ""; position: absolute; left: 9px; top: 50%; width: 16px; height: 16px; margin-top: -8px;
+  border-radius: 50%; border: 2px solid var(--like); opacity: 0; pointer-events: none;
+}
+.like.pop svg { animation: pop .5s cubic-bezier(.2, 1.7, .4, 1); }
+.like.pop[aria-pressed="true"]::before { animation: ring .55s ease-out; }
+.like.lg { padding: 10px 16px; font-size: 14px; border: 1px solid var(--line); gap: 8px; }
+.like.lg svg { width: 19px; height: 19px; }
+.like.lg::before { left: 16px; width: 19px; height: 19px; margin-top: -9.5px; }
+@keyframes pop { 0% { transform: scale(1); } 35% { transform: scale(1.4); } 100% { transform: scale(1); } }
+@keyframes ring { 0% { opacity: .9; transform: scale(.4); } 100% { opacity: 0; transform: scale(2.3); } }
+
+.next { display: flex; flex-direction: column; gap: 4px; text-decoration: none; text-align: right; max-width: 62%; }
+.next small { font: 500 12px var(--f-mono); color: var(--muted); }
+.next span { font: 500 15px/1.35 var(--f-body); color: var(--fg); text-wrap: balance; }
+.next:hover span { text-decoration: underline; text-underline-offset: 4px; }
+
+/* markdown body */
+.md { font-family: var(--md-font, var(--f-body)); font-size: var(--md-size, 17px); line-height: 1.72; color: var(--text); }
+.md > * + * { margin-top: 1.15em; }
+.md h2 { font: 500 1.45em/1.25 var(--md-head, var(--f-serif)); color: var(--fg); letter-spacing: -.01em; margin-top: 2.1em; text-wrap: balance; }
+.md h3 { font: 600 1.1em/1.3 var(--f-body); color: var(--fg); margin-top: 1.8em; }
+.md strong { color: var(--fg); font-weight: 600; }
+.md a { color: var(--fg); text-decoration-color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+.md :not(pre) > code { font-family: var(--f-mono); font-size: .84em; color: var(--fg); background: var(--soft); padding: .14em .42em; border-radius: 5px; }
+.md ul, .md ol { padding-left: 1.3em; margin-bottom: 0; }
+.md li + li { margin-top: .4em; }
+.md li::marker { color: var(--muted); }
+.md blockquote { margin: 1.6em 0 0; padding: .1em 0 .1em 1.1em; border-left: 2px solid var(--fg); font-style: italic; color: var(--fg); }
+.md hr { border: 0; border-top: 1px solid var(--line); margin: 2.6em 0; }
+.md figure { margin: 2em 0 0; }
+.md figure img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+.md figcaption { margin-top: 10px; font: 13px/1.5 var(--f-mono); color: var(--muted); }
+.md .tbl { overflow-x: auto; }
+.md table { width: 100%; border-collapse: collapse; font: 15px/1.5 var(--f-body); }
+.md th, .md td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--line); text-align: left; font-variant-numeric: tabular-nums; }
+.md th { color: var(--fg); font-weight: 600; }
+.md .code { position: relative; }
+.md pre {
+  margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px 18px; overflow-x: auto;
+  font: 13.5px/1.65 var(--f-mono); color: color-mix(in srgb, var(--fg) 84%, var(--bg));
+}
+.md pre code { font: inherit; }
+.md .copy, .md .lang { position: absolute; top: 9px; right: 10px; font: 500 11px var(--f-mono); transition: opacity .2s; }
+.md .lang { color: var(--muted); pointer-events: none; }
+.md .copy { opacity: 0; cursor: pointer; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+.md .code:hover .copy, .md .copy:focus-visible { opacity: 1; }
+.md .code:hover .lang, .md .code:focus-within .lang { opacity: 0; }
+@media (hover: none) { .md .copy { opacity: 1; } .md .lang { opacity: 0; } }
+.md.raw { white-space: pre-wrap; font-family: var(--f-mono); font-size: 14px; }
+.hljs-keyword, .hljs-built_in, .hljs-literal, .hljs-type, .hljs-selector-tag { color: var(--fg); font-weight: 600; }
+.hljs-string, .hljs-regexp, .hljs-symbol, .hljs-template-variable { color: var(--accent); }
+.hljs-number, .hljs-attr, .hljs-attribute { color: var(--fg); }
+.hljs-comment, .hljs-quote, .hljs-meta { color: var(--muted); font-style: italic; }
+.hljs-title, .hljs-title.function_ { color: var(--fg); }
+
+/* load choreography */
+.boot [data-rise] { animation: rise .7s var(--ease) both; animation-delay: calc(var(--i, 0) * 55ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+
+/* ---------- A · Ночь ---------- */
+.A {
+  max-width: 720px; margin: 0 auto;
+  padding-block: 72px 150px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+.A-head { display: flex; align-items: center; gap: 16px; }
+.A-name { font: 500 24px/1.15 var(--f-serif); letter-spacing: -.01em; color: var(--fg); }
+.A-role { margin-top: 4px; font: 500 14px/1.4 var(--f-body); color: var(--muted); }
+.A-bio { margin-top: 28px; max-width: 54ch; font: 16px/1.65 var(--f-body); color: var(--text); }
+.A-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+.A-links a { text-decoration: none; }
+.A-links a:hover { background: color-mix(in srgb, var(--soft) 50%, var(--fg) 10%); }
+.A-label { margin: 64px 0 10px; font: 500 12px var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .12em; }
+.A-row {
+  position: relative; display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: center;
+  padding: 20px 14px; margin: 0 -14px; border-radius: 12px;
+  transition: background-color .3s var(--ease);
+}
+.A-row + .A-row::after { content: ""; position: absolute; left: 14px; right: 14px; top: 0; border-top: 1px solid var(--line); transition: opacity .3s; }
+.A-row:hover { background: var(--soft); }
+.A-row:hover::after, .A-row:hover + .A-row::after { opacity: 0; }
+.A-t {
+  display: inline-block; font: 500 21px/1.3 var(--f-serif); color: var(--fg); letter-spacing: -.005em; text-wrap: balance;
+  transition: transform .45s var(--ease);
+}
+.A-row:hover .A-t { transform: translateX(4px); }
+.A-ex { grid-column: 1; font: 15px/1.55 var(--f-body); color: var(--text); max-width: 58ch; }
+.A-row .chips { grid-column: 1; margin-top: 6px; }
+.A-row .like { grid-column: 2; grid-row: 1 / span 3; align-self: start; }
+.A-foot { margin-top: 72px; font: 13px var(--f-mono); color: var(--muted); }
+
+.A-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.A-back { font: 500 14px var(--f-body); color: var(--muted); text-decoration: none; transition: color .2s; }
+.A-back:hover { color: var(--fg); }
+.A-me { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 500 14px var(--f-body); color: var(--fg); }
+.A-h1 { margin: 48px 0 14px; font: 500 clamp(32px, 6vw, 44px)/1.12 var(--f-serif); letter-spacing: -.02em; color: var(--fg); text-wrap: balance; }
+.A .md { margin-top: 44px; }
+.A-end { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+/* ---------- B · Бумага ---------- */
+.B {
+  display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 80px;
+  max-width: 1120px; margin: 0 auto;
+  padding-block: 80px 150px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+.B-aside { position: sticky; top: 80px; align-self: start; display: flex; flex-direction: column; gap: 12px; }
+.B-name { margin-top: 12px; font: 500 30px/1.1 var(--f-serif); letter-spacing: -.02em; }
+.B-role { font: 500 15px var(--f-body); color: var(--muted); }
+.B-bio { margin-top: 6px; font: 15px/1.6 var(--f-body); color: var(--text); }
+.B-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.B-links a { font: 500 13px var(--f-body); text-decoration: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); transition: background-color .2s, border-color .2s; }
+.B-links a:hover { background: var(--soft); border-color: var(--soft); }
+.B-label { font: 500 13px var(--f-body); color: var(--muted); padding-bottom: 14px; }
+.B-item { position: relative; display: grid; gap: 12px; padding: 30px 0; border-top: 1px solid var(--line); }
+.B-h { font: 500 clamp(24px, 2.8vw, 32px)/1.18 var(--f-serif); letter-spacing: -.02em; color: var(--fg); text-wrap: balance; }
+.B-h .u { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1.5px no-repeat; transition: background-size .5s var(--ease); }
+.B-item:hover .B-h .u { background-size: 100% 1.5px; }
+.B-ex { font: 16px/1.6 var(--f-body); color: var(--text); max-width: 60ch; }
+.B-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.B-read {
+  max-width: 740px; margin: 0 auto;
+  padding-block: 40px 150px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+.B-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.B-me { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.B-me b { display: block; font: 600 14px var(--f-body); }
+.B-me small { display: block; font: 13px var(--f-body); color: var(--muted); }
+.B-back { font: 500 14px var(--f-body); color: var(--muted); text-decoration: none; }
+.B-back:hover { color: var(--fg); }
+.B-h1 { margin: 56px 0 16px; font: 500 clamp(34px, 6vw, 52px)/1.08 var(--f-serif); letter-spacing: -.025em; text-wrap: balance; }
+.B-read .md { margin-top: 44px; --md-size: 18px; }
+.B-end { margin-top: 72px; padding: 24px; border-radius: 16px; background: var(--soft); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.B-end .like.lg { background: var(--bg); border-color: var(--bg); }
+
+/* ---------- C · Индекс ---------- */
+.C {
+  max-width: 1120px; margin: 0 auto;
+  padding-block: 36px 150px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+  transform-origin: 50% 30vh;
+  transition: transform .6s var(--ease), filter .6s var(--ease);
+}
+.C.dim { transform: scale(.985); filter: blur(1px); }
+.C-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.C-handle { font: 500 13px var(--f-mono); color: var(--muted); }
+.C-theme {
+  width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: none; color: var(--fg);
+  display: grid; place-items: center; cursor: pointer; transition: background-color .2s, transform .5s var(--ease);
+}
+.C-theme:hover { background: var(--soft); }
+.C-theme:active { transform: rotate(40deg); }
+.C-theme svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.C-theme .sun { display: none; }
+.C-theme.is-dark .sun { display: block; }
+.C-theme.is-dark .moon { display: none; }
+.C-name { margin-top: 56px; font: 600 clamp(48px, 11vw, 132px)/.94 var(--f-wide); letter-spacing: -.045em; }
+.C-name .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .06em; }
+.C-name .w > span { display: inline-block; animation: up 1s var(--ease) both; animation-delay: calc(var(--i) * 90ms + 60ms); }
+@keyframes up { from { transform: translateY(105%); } }
+.C-intro { margin-top: 36px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 20px; align-items: center; }
+.C-role { font: 600 16px var(--f-body); }
+.C-bio { margin-top: 4px; font: 15px/1.55 var(--f-body); color: var(--text); max-width: 52ch; }
+.C-links { display: flex; gap: 16px; font: 500 13px var(--f-mono); }
+.C-links a { text-decoration: none; color: var(--muted); }
+.C-links a:hover { color: var(--fg); }
+.C-year { margin-top: 64px; display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--fg); padding-top: 14px; }
+.C-year h2 { font: 500 20px var(--f-wide); letter-spacing: -.02em; }
+.C-rows { display: grid; }
+.C-row {
+  position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto auto 20px; gap: 16px; align-items: center;
+  padding: 14px 12px; margin: 0 -12px; border-radius: 10px; transition: background-color .25s;
+}
+.C-row:hover { background: var(--soft); }
+.C-row time { font: 13px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.C-t { font: 500 17px/1.35 var(--f-body); }
+.C-tags { font: 12px var(--f-mono); color: var(--muted); }
+.C-arrow { color: var(--fg); opacity: 0; transform: translateX(-8px); transition: opacity .3s, transform .45s var(--ease); }
+.C-row:hover .C-arrow { opacity: 1; transform: none; }
+.C-scrim {
+  position: fixed; inset: 0; z-index: 20; opacity: 0; pointer-events: none;
+  background: color-mix(in srgb, var(--bg) 45%, transparent);
+  transition: opacity .5s var(--ease);
+}
+.C-scrim.open { opacity: 1; pointer-events: auto; }
+.C-sheet {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 21; width: min(780px, 100%);
+  background: var(--bg); border-left: 1px solid var(--line);
+  box-shadow: -40px 0 90px -50px rgba(0, 0, 0, .45);
+  transform: translateX(105%); transition: transform .6s var(--ease), visibility 0s .6s; visibility: hidden;
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) calc(140px + env(safe-area-inset-bottom, 0px)) 48px;
+}
+.C-sheet.open { transform: none; visibility: visible; transition: transform .6s var(--ease); }
+.C-sheet-in.swap { animation: rise .5s var(--ease) both; }
+.C-sbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.C-close { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font: 500 13px var(--f-body); color: var(--muted); padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); }
+.C-close:hover { color: var(--fg); background: var(--soft); }
+.C-close kbd { font: 11px var(--f-mono); color: var(--muted); }
+.C-h1 { margin: 40px 0 14px; font: 600 clamp(28px, 4.4vw, 42px)/1.08 var(--f-wide); letter-spacing: -.035em; text-wrap: balance; }
+.C-sheet .md { margin-top: 36px; }
+.C-end { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+/* ---------- prototype switcher ---------- */
+.sw {
+  position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+  transform: translateX(-50%);
+  display: flex; gap: 2px; padding: 4px; border-radius: 999px;
+  background: var(--fg); color: var(--bg);
+  box-shadow: 0 14px 40px -14px rgba(0, 0, 0, .5);
+  view-transition-name: sw;
+}
+.sw-ind { position: absolute; left: 0; top: 4px; bottom: 4px; border-radius: 999px; background: var(--bg); transition: transform .5s var(--ease), width .5s var(--ease); }
+.sw button {
+  position: relative; z-index: 1; border: 0; background: none; cursor: pointer;
+  padding: 9px 15px; border-radius: 999px; white-space: nowrap;
+  font: 500 13px var(--f-body); color: color-mix(in srgb, var(--bg) 62%, var(--fg));
+  transition: color .3s;
+}
+.sw button b { font: 500 11px var(--f-mono); margin-right: 6px; opacity: .6; }
+.sw button[aria-current="true"] { color: var(--fg); }
+.sw button:focus-visible { outline-color: var(--bg); }
+
+/* view transitions */
+::view-transition-old(root) { animation: .22s ease both vt-out; }
+::view-transition-new(root) { animation: .5s var(--ease) both vt-in; }
+::view-transition-group(*) { animation-duration: .55s; animation-timing-function: var(--ease); }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(14px); } }
+
+/* responsive */
+@media (max-width: 860px) {
+  .B { grid-template-columns: minmax(0, 1fr); gap: 48px; padding-top: 48px; }
+  .B-aside { position: static; }
+  .C-intro { grid-template-columns: auto minmax(0, 1fr); }
+  .C-links { grid-column: 1 / -1; }
+  .C-year { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+}
+@media (max-width: 560px) {
+  .A { padding-top: 48px; }
+  .A-t { font-size: 19px; }
+  .C-row { grid-template-columns: 46px minmax(0, 1fr) auto; gap: 10px; }
+  .C-tags, .C-arrow { display: none; }
+  .C-sheet { padding-left: 20px; }
+  .sw button { padding: 9px 11px; }
+  .sw button b { display: none; }
+  .next { max-width: 100%; text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<div id="app"></div>
+<nav class="sw" id="sw" aria-label="Вариант прототипа">
+  <span class="sw-ind" id="sw-ind"></span>
+  <button type="button" data-v="a"><b>A</b>Ночь</button>
+  <button type="button" data-v="b"><b>B</b>Бумага</button>
+  <button type="button" data-v="c"><b>C</b>Индекс</button>
+</nav>
+
+<!-- Posts: in the real blog each of these is a .md file -->
+<script type="text/markdown" id="md-perf-120fps">
+Анимация выглядит плавной, когда каждый кадр укладывается в бюджет: **16,7 мс** при 60 Гц и **8,3 мс** при 120 Гц. Из этого бюджета 2–3 мс браузер забирает себе, так что нашему коду остаётся совсем немного.
+
+## Как браузер рисует кадр
+
+```text
+JS → Style → Layout → Paint → Composite
+```
+
+Чем левее этап, который запускает изменение, тем дороже кадр. Смена `width` гонит весь конвейер, смена `transform` трогает только композитинг.
+
+## Что анимировать
+
+| Свойство | Этапы | Цена |
+| --- | --- | --- |
+| `transform`, `opacity` | Composite | дёшево |
+| `color`, `box-shadow` | Paint → Composite | средне |
+| `width`, `top`, `margin` | Layout → Paint → Composite | дорого |
+
+## Без лишних рефлоу
+
+Сначала все чтения, потом все записи. Если их чередовать, браузер пересчитывает layout на каждой итерации:
+
+```js
+// плохо: read → write → read → write
+items.forEach(el => {
+  el.style.height = el.offsetWidth / 2 + 'px';
+});
+
+// хорошо: сначала читаем, потом пишем
+const widths = items.map(el => el.offsetWidth);
+items.forEach((el, i) => {
+  el.style.height = widths[i] / 2 + 'px';
+});
+```
+
+## Время вместо кадров
+
+На 120 Гц `requestAnimationFrame` вызывается вдвое чаще. Двигайте по времени, а не по счётчику кадров:
+
+```js
+function tick(now) {
+  const t = Math.min((now - start) / duration, 1);
+  el.style.transform = `translateX(${ease(t) * 240}px)`;
+  if (t < 1) requestAnimationFrame(tick);
+}
+```
+
+> Правило ревью: если анимация трогает layout, причина должна быть записана в комментарии.
+
+## Чек-лист
+
+- анимируем только `transform` и `opacity`;
+- `will-change` ставим перед анимацией и снимаем после;
+- длинные списки рендерим через `content-visibility: auto`;
+- проверяем в DevTools → Performance с замедлением CPU ×4.
+</script>
+
+<script type="text/markdown" id="md-how-this-blog-works">
+Этот блог — папка с markdown-файлами. Никакой CMS и админки: пишу текст в редакторе, делаю `git push`, через минуту запись на сайте.
+
+## Структура
+
+```text
+content/
+  posts/
+    2026-11-21-perf-120fps.md
+    2026-11-18-how-this-blog-works.md
+  images/
+    blog-arch.svg
+src/
+  pages/
+    index.astro      # список записей
+    [slug].astro     # страница записи
+```
+
+Каждый файл начинается с фронтматтера, из него собирается список на главной:
+
+```yaml
+---
+title: Как устроен этот блог
+date: 2026-11-18
+tags: [meta, astro]
+---
+```
+
+![Схема: markdown → сборка → статика → CDN](img:arch)
+
+## Почему не Medium
+
+> Хочу, чтобы тексты лежали рядом с кодом и жили столько же, сколько репозиторий.
+
+- **Контроль.** Свой домен, свой дизайн, никаких пейволов.
+- **Скорость.** Статический HTML открывается мгновенно.
+- **Git как история.** Каждая правка — коммит, любую можно откатить.
+
+## Лайки
+
+Единственная динамика на сайте. Маленький эндпоинт хранит счётчик по `slug`:
+
+```js
+export async function like(slug) {
+  const res = await fetch(`/api/likes/${slug}`, { method: 'POST' });
+  if (!res.ok) throw new Error('Лайк не сохранился');
+  return (await res.json()).count;
+}
+```
+
+Защита от накрутки простая: один лайк на браузер плюс лимит по IP на сервере. Для личного блога хватает.
+
+---
+
+Дальше в планах RSS и поиск по записям.
+</script>
+
+<script type="text/markdown" id="md-useeffect-detox">
+Год назад в нашем проекте было 214 вызовов `useEffect`. Сейчас 38. Вот три паттерна, которые я убрал первыми.
+
+## 1. Производное состояние
+
+Если значение вычисляется из пропсов или другого состояния, ему не нужен свой `useState` и эффект для синхронизации.
+
+```tsx
+// было
+const [fullName, setFullName] = useState('');
+useEffect(() => {
+  setFullName(`${first} ${last}`);
+}, [first, last]);
+
+// стало
+const fullName = `${first} ${last}`;
+```
+
+## 2. Реакция на событие
+
+Аналитика после клика — часть обработчика клика, а не эффект, который следит за флагом.
+
+```tsx
+function onSubmit(form: FormData) {
+  save(form);
+  track('form_submitted'); // здесь, а не в useEffect
+}
+```
+
+## 3. Загрузка данных
+
+Для запросов есть библиотеки, которые уже решили кэш, гонки и повторы:
+
+```tsx
+const { data, isPending } = useQuery({
+  queryKey: ['post', slug],
+  queryFn: () => getPost(slug),
+});
+```
+
+> Эффект нужен, когда вы синхронизируетесь с чем-то **вне** React: DOM-API, сокетом, сторонним виджетом.
+
+Что у нас осталось в эффектах:
+
+1. подписки на `WebSocket`;
+2. интеграция с картой;
+3. фокус и скролл после навигации.
+</script>
+
+<script type="text/markdown" id="md-postgres-indexes">
+Запрос на 40 мс превратился в запрос на 9 секунд, когда таблица заказов доросла до 30 млн строк. Вот что я узнал, пока чинил.
+
+## Составной индекс читается слева направо
+
+```sql
+CREATE INDEX orders_user_created_idx
+  ON orders (user_id, created_at DESC);
+```
+
+Такой индекс помогает фильтру по `user_id` и сортировке по дате. Запросу только по `created_at` он почти не помогает.
+
+## Частичные индексы
+
+Если 95% заказов закрыты, а ищем мы открытые, индексировать всё незачем:
+
+```sql
+CREATE INDEX orders_open_idx
+  ON orders (created_at)
+  WHERE status = 'open';
+```
+
+## Что получилось
+
+| Запрос | До | После |
+| --- | ---: | ---: |
+| Заказы пользователя | 9 200 мс | 3 мс |
+| Открытые за неделю | 1 400 мс | 11 мс |
+| Размер индексов | 4,1 ГБ | 1,6 ГБ |
+
+Главный урок: смотреть `EXPLAIN (ANALYZE, BUFFERS)` до того, как добавлять индекс, а не после.
+</script>
+
+<script type="text/markdown" id="md-setup-2026">
+Раз в год переписываю этот список. Меняется меньше, чем кажется.
+
+![Терминал после сборки блога](img:term)
+
+## Терминал
+
+- **Ghostty** — быстрый и без конфига на 300 строк.
+- **fish** — автодополнение из коробки.
+- **tmux** — одна сессия на проект.
+
+## Редактор
+
+Neovim для правок на сервере, VS Code для всего остального. Шрифт *JetBrains Mono*, 14 pt, лигатуры выключены.
+
+## Алиасы
+
+```bash
+alias gs="git status -sb"
+alias gl="git log --oneline --graph -20"
+```
+</script>
+
+<script type="text/markdown" id="md-git-rebase">
+`rebase` пугает, потому что переписывает историю. Но если знать три команды, страх проходит.
+
+## Перед началом
+
+```bash
+git switch feature/login
+git fetch origin
+git rebase origin/main
+```
+
+## Если что-то пошло не так
+
+```bash
+git rebase --abort        # вернуть всё как было
+git reflog                # найти коммит до rebase
+git reset --hard HEAD@{3}
+```
+
+> `reflog` помнит всё, что вы делали за последние 90 дней. Потерять коммит в git очень сложно.
+
+## Правило
+
+Ребейзить только свои ветки, которые ещё никто не забрал. Общую `main` — никогда.
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(() => {
+  const svgUri = s => 'data:image/svg+xml,' + encodeURIComponent(s);
+
+  const ME = {
+    name: 'Денис',
+    surname: 'Фамилия',
+    role: 'Frontend-разработчик',
+    bio: 'Пишу про производительность интерфейсов, React, базы данных и инструменты, которые экономят время.',
+    links: [['GitHub', 'https://github.com/'], ['Telegram', 'https://t.me/'], ['LinkedIn', 'https://www.linkedin.com/']],
+  };
+
+  const AVATAR = svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d7d9de"/><stop offset="1" stop-color="#585c66"/></linearGradient></defs><rect width="120" height="120" fill="url(#g)"/><circle cx="60" cy="47" r="20" fill="#f3f4f6" opacity=".92"/><path d="M20 120c3-26 20-40 40-40s37 14 40 40z" fill="#f3f4f6" opacity=".92"/></svg>`);
+
+  const IMAGES = {
+    arch: svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 210" font-family="ui-monospace,Menlo,Consolas,monospace"><g fill="none" stroke="#8a8d95" stroke-width="1.5">${[20, 210, 400, 590].map(x => `<rect x="${x}" y="50" width="150" height="70" rx="12"/>`).join('')}${[170, 360, 550].map(x => `<path d="M${x + 6} 85h26m-7-6 7 6-7 6"/>`).join('')}</g><g fill="#8a8d95" font-size="15" text-anchor="middle">${[['posts/*.md', 95], ['сборка', 285], ['HTML + CSS', 475], ['CDN', 665]].map(([t, x]) => `<text x="${x}" y="90">${t}</text>`).join('')}</g><g fill="#8a8d95" font-size="12" text-anchor="middle" opacity=".7">${[['content/', 95], ['astro build', 285], ['dist/', 475], ['edge cache', 665]].map(([t, x]) => `<text x="${x}" y="150">${t}</text>`).join('')}</g></svg>`),
+    term: svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 280" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="16"><rect width="760" height="280" rx="14" fill="#141518"/><g fill="#3a3d44"><circle cx="28" cy="26" r="6"/><circle cx="48" cy="26" r="6"/><circle cx="68" cy="26" r="6"/></g><text x="28" y="84" fill="#7d808a">~/blog <tspan fill="#a9b4cf">main</tspan> ❯ <tspan fill="#e6e7ea">npm run build</tspan></text><text x="28" y="116" fill="#9cc5a9">✓ 6 записей · 0,8 с</text><text x="28" y="148" fill="#7d808a">~/blog <tspan fill="#a9b4cf">main</tspan> ❯ <tspan fill="#e6e7ea">git push</tspan></text><text x="28" y="180" fill="#9cc5a9">✓ задеплоено на CDN</text><text x="28" y="212" fill="#7d808a">~/blog <tspan fill="#a9b4cf">main</tspan> ❯</text><rect x="164" y="197" width="10" height="19" fill="#e6e7ea"/></svg>`),
+  };
+
+  const POSTS = [
+    { id: 'perf-120fps', title: 'Перформанс-гайдлайн: анимации на 120 fps', date: '2026-11-21', read: 8, tags: ['perf', 'css'], likes: 64,
+      excerpt: 'Бюджет кадра при 60 и 120 Гц, что можно анимировать без рефлоу и чек-лист для ревью.' },
+    { id: 'how-this-blog-works', title: 'Как устроен этот блог', date: '2026-11-18', read: 5, tags: ['meta', 'astro'], likes: 128,
+      excerpt: 'Папка с markdown-файлами, git push и один вечер работы. Из чего собран сайт и как работают лайки.' },
+    { id: 'useeffect-detox', title: 'Детокс от useEffect', date: '2026-11-04', read: 7, tags: ['react'], likes: 342,
+      excerpt: 'Было 214 эффектов, стало 38. Три паттерна, которые я убрал из кода первыми.' },
+    { id: 'postgres-indexes', title: 'Индексы в Postgres, которые я понял слишком поздно', date: '2026-10-21', read: 9, tags: ['postgres', 'sql'], likes: 211,
+      excerpt: 'Как запрос на 40 мс превратился в 9 секунд и что помогло вернуть его обратно.' },
+    { id: 'setup-2026', title: 'Мой сетап в 2026', date: '2026-09-30', read: 4, tags: ['tools'], likes: 87,
+      excerpt: 'Терминал, редактор, шрифт и пара алиасов, без которых я не работаю.' },
+    { id: 'git-rebase', title: 'git rebase без страха', date: '2025-12-14', read: 6, tags: ['git'], likes: 156,
+      excerpt: 'Три команды, после которых переписывать историю уже не страшно.' },
+  ];
+
+  /* ---------- helpers ---------- */
+  const root = document.documentElement;
+  const app = document.getElementById('app');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const day = p => new Date(p.date + 'T12:00:00');
+  const fmtShort = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+  const fmtDM = new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit' });
+  const fullName = `${ME.name} ${ME.surname}`;
+  const ICON_CAL = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
+  const ICON_HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+
+  let liked = new Set();
+  try { liked = new Set(JSON.parse(localStorage.getItem('blogproto.likes') || '[]')); } catch (e) {}
+  const saveLikes = () => { try { localStorage.setItem('blogproto.likes', JSON.stringify([...liked])); } catch (e) {} };
+  const count = p => p.likes + (liked.has(p.id) ? 1 : 0);
+  const likeBtn = (p, cls = '') =>
+    `<button type="button" class="like ${cls}" data-like="${p.id}" aria-pressed="${liked.has(p.id)}" aria-label="Нравится: ${esc(p.title)}">${ICON_HEART}<span class="n">${count(p)}</span></button>`;
+  const metaChips = (p, withAuthor) =>
+    `<div class="chips"><span class="chip">${ICON_CAL}<time datetime="${p.date}">${fmtShort.format(day(p))}</time></span>` +
+    (withAuthor ? `<span class="dot">·</span><span class="chip">${ME.name}</span>` : '') +
+    `<span class="chip ghost">${p.read} мин</span>` +
+    p.tags.map(t => `<span class="chip ghost">#${t}</span>`).join('') + `</div>`;
+  const nextOf = p => POSTS[(POSTS.indexOf(p) + 1) % POSTS.length];
+  const nextLink = (p, v) => { const n = nextOf(p); return `<a class="next" href="#${v}-${n.id}"><small>Следующая запись</small><span>${esc(n.title)} →</span></a>`; };
+  const links = () => ME.links.map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`).join('');
+  const vt = (name, v) => (v === 'c' ? '' : ` style="view-transition-name:${name}"`);
+
+  /* ---------- A · Ночь ---------- */
+  const A_list = () => `
+  <div class="A">
+    <header class="A-head" data-rise style="--i:0">
+      <img class="avatar" src="${AVATAR}" alt="Фото: ${fullName}" width="64" height="64" style="view-transition-name:me">
+      <div><h1 class="A-name">${fullName}</h1><p class="A-role">${ME.role}</p></div>
+    </header>
+    <p class="A-bio" data-rise style="--i:1">${ME.bio}</p>
+    <nav class="A-links chips" data-rise style="--i:2">${ME.links.map(([t, u]) => `<a class="chip" href="${u}" target="_blank" rel="noopener">${t}</a>`).join('')}</nav>
+    <h2 class="A-label" data-rise style="--i:3">Записи · ${POSTS.length}</h2>
+    <div>${POSTS.map((p, i) => `
+      <article class="A-row" data-rise style="--i:${4 + i}">
+        <a class="cover" href="#a-${p.id}" aria-label="${esc(p.title)}"></a>
+        <h3><span class="A-t"${vt('t-' + p.id, 'a')}>${esc(p.title)}</span></h3>
+        <p class="A-ex">${esc(p.excerpt)}</p>
+        ${metaChips(p, false)}
+        ${likeBtn(p)}
+      </article>`).join('')}
+    </div>
+    <footer class="A-foot">© 2026 · собрано из markdown</footer>
+  </div>`;
+
+  const A_post = p => `
+  <div class="A">
+    <div class="A-bar">
+      <a class="A-back" href="#a">← Все записи</a>
+      <a class="A-me" href="#a"><img class="avatar" src="${AVATAR}" alt="" width="28" height="28" style="view-transition-name:me">${ME.name}</a>
+    </div>
+    <article>
+      <h1 class="A-h1"${vt('t-' + p.id, 'a')}>${esc(p.title)}</h1>
+      ${metaChips(p, true)}
+      <div class="md" data-md="${p.id}"></div>
+      <div class="A-end">${likeBtn(p, 'lg')}${nextLink(p, 'a')}</div>
+    </article>
+  </div>`;
+
+  /* ---------- B · Бумага ---------- */
+  const B_list = () => `
+  <div class="B">
+    <aside class="B-aside" data-rise style="--i:0">
+      <img class="avatar" src="${AVATAR}" alt="Фото: ${fullName}" width="104" height="104" style="view-transition-name:me">
+      <h1 class="B-name">${fullName}</h1>
+      <p class="B-role">${ME.role}</p>
+      <p class="B-bio">${ME.bio}</p>
+      <nav class="B-links">${links()}</nav>
+    </aside>
+    <main>
+      <h2 class="B-label" data-rise style="--i:1">Последние записи</h2>
+      ${POSTS.map((p, i) => `
+      <article class="B-item" data-rise style="--i:${2 + i}">
+        <a class="cover" href="#b-${p.id}" aria-label="${esc(p.title)}"></a>
+        ${metaChips(p, false)}
+        <h3 class="B-h"${vt('t-' + p.id, 'b')}><span class="u">${esc(p.title)}</span></h3>
+        <p class="B-ex">${esc(p.excerpt)}</p>
+        <div class="B-foot"><span></span>${likeBtn(p)}</div>
+      </article>`).join('')}
+    </main>
+  </div>`;
+
+  const B_post = p => `
+  <div class="B-read">
+    <header class="B-bar">
+      <a class="B-me" href="#b"><img class="avatar" src="${AVATAR}" alt="" width="40" height="40" style="view-transition-name:me"><span><b>${fullName}</b><small>${ME.role}</small></span></a>
+      <a class="B-back" href="#b">← Все записи</a>
+    </header>
+    <article>
+      <h1 class="B-h1"${vt('t-' + p.id, 'b')}>${esc(p.title)}</h1>
+      ${metaChips(p, true)}
+      <div class="md" data-md="${p.id}"></div>
+      <div class="B-end">${likeBtn(p, 'lg')}${nextLink(p, 'b')}</div>
+    </article>
+  </div>`;
+
+  /* ---------- C · Индекс ---------- */
+  const C_page = () => {
+    const years = [...new Set(POSTS.map(p => p.date.slice(0, 4)))];
+    const words = [ME.name, ME.surname];
+    return `
+    <div class="C" id="c-root">
+      <header class="C-top">
+        <span class="C-handle">~/blog</span>
+        <button type="button" class="C-theme" id="c-theme" aria-label="Сменить тему">
+          <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+          <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+      </header>
+      <h1 class="C-name">${words.map((w, i) => `<span class="w"><span style="--i:${i}">${w}</span></span>`).join(' ')}</h1>
+      <div class="C-intro" data-rise style="--i:3">
+        <img class="avatar" src="${AVATAR}" alt="Фото: ${fullName}" width="60" height="60">
+        <div><p class="C-role">${ME.role}</p><p class="C-bio">${ME.bio}</p></div>
+        <nav class="C-links">${links()}</nav>
+      </div>
+      ${years.map((y, yi) => `
+      <section class="C-year" data-rise style="--i:${4 + yi}">
+        <h2>${y}</h2>
+        <div class="C-rows">${POSTS.filter(p => p.date.startsWith(y)).map(p => `
+          <article class="C-row">
+            <a class="cover" href="#c-${p.id}" aria-label="${esc(p.title)}"></a>
+            <time datetime="${p.date}">${fmtDM.format(day(p))}</time>
+            <h3 class="C-t">${esc(p.title)}</h3>
+            <span class="C-tags">${p.tags.join(', ')}</span>
+            ${likeBtn(p)}
+            <span class="C-arrow" aria-hidden="true">→</span>
+          </article>`).join('')}
+        </div>
+      </section>`).join('')}
+    </div>
+    <div class="C-scrim" id="c-scrim"></div>
+    <aside class="C-sheet" id="c-sheet" aria-label="Запись"><div class="C-sheet-in" id="c-sheet-in"></div></aside>`;
+  };
+
+  const C_sheet = p => `
+    <div class="C-sbar"><span class="C-handle">~/blog/${p.id}.md</span><a class="C-close" href="#c" id="c-close">Закрыть <kbd>Esc</kbd></a></div>
+    <h1 class="C-h1">${esc(p.title)}</h1>
+    ${metaChips(p, true)}
+    <div class="md" data-md="${p.id}"></div>
+    <div class="C-end">${likeBtn(p, 'lg')}${nextLink(p, 'c')}</div>`;
+
+  /* ---------- markdown hydration ---------- */
+  if (window.hljs) hljs.configure({ ignoreUnescapedHTML: true });
+  function hydrate(scope) {
+    scope.querySelectorAll('[data-md]').forEach(el => {
+      const src = (document.getElementById('md-' + el.dataset.md) || {}).textContent || '';
+      if (window.marked) el.innerHTML = marked.parse(src.trim(), { gfm: true });
+      else { el.textContent = src.trim(); el.classList.add('raw'); return; }
+      el.querySelectorAll('img[src^="img:"]').forEach(img => { img.src = IMAGES[img.getAttribute('src').slice(4)] || ''; });
+      el.querySelectorAll('p').forEach(p => {
+        if (p.childNodes.length === 1 && p.firstChild.nodeName === 'IMG') {
+          const img = p.firstChild, fig = document.createElement('figure');
+          fig.append(img);
+          if (img.alt) { const c = document.createElement('figcaption'); c.textContent = img.alt; fig.append(c); }
+          p.replaceWith(fig);
+        }
+      });
+      el.querySelectorAll('table').forEach(t => { const w = document.createElement('div'); w.className = 'tbl'; t.replaceWith(w); w.append(t); });
+      el.querySelectorAll('pre').forEach(pre => {
+        const code = pre.querySelector('code');
+        if (window.hljs && code) { try { hljs.highlightElement(code); } catch (e) {} }
+        const w = document.createElement('div'); w.className = 'code';
+        pre.replaceWith(w); w.append(pre);
+        const lang = ((code && code.className.match(/language-(\w+)/)) || [])[1];
+        if (lang && lang !== 'text') { const l = document.createElement('span'); l.className = 'lang'; l.textContent = lang; w.append(l); }
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'copy'; b.textContent = 'Копировать'; w.append(b);
+      });
+      el.querySelectorAll('a[href^="http"]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+    });
+  }
+
+  /* ---------- routing & render ---------- */
+  const parse = () => {
+    const m = location.hash.match(/^#([abc])(?:-([a-z0-9-]+))?$/);
+    if (!m) return { v: 'a', post: null };
+    return { v: m[1], post: POSTS.some(p => p.id === m[2]) ? m[2] : null };
+  };
+  let state = { v: null, post: null };
+  const scrollMemo = {};
+
+  function render(prev) {
+    root.dataset.variant = state.v;
+    const p = POSTS.find(x => x.id === state.post);
+    if (state.v === 'c') {
+      if (prev.v !== 'c') { app.innerHTML = C_page(); hydrate(app); syncThemeIcon(); }
+      setSheet(p, prev);
+    } else {
+      root.classList.remove('lock');
+      app.innerHTML = state.v === 'a' ? (p ? A_post(p) : A_list()) : (p ? B_post(p) : B_list());
+      hydrate(app);
+      window.scrollTo(0, p ? 0 : (prev.v === state.v ? scrollMemo[state.v] || 0 : 0));
+    }
+    syncSwitcher();
+  }
+
+  function setSheet(p, prev) {
+    const sheet = document.getElementById('c-sheet'), inner = document.getElementById('c-sheet-in');
+    const on = !!p;
+    if (on) {
+      inner.innerHTML = C_sheet(p);
+      hydrate(inner);
+      sheet.scrollTop = 0;
+      if (prev.v === 'c' && prev.post) { inner.classList.remove('swap'); void inner.offsetWidth; inner.classList.add('swap'); }
+    }
+    sheet.classList.toggle('open', on);
+    sheet.setAttribute('aria-hidden', String(!on));
+    document.getElementById('c-scrim').classList.toggle('open', on);
+    document.getElementById('c-root').classList.toggle('dim', on);
+    root.classList.toggle('lock', on);
+    if (on && !(prev.v === 'c' && prev.post)) setTimeout(() => { const c = document.getElementById('c-close'); if (c) c.focus({ preventScroll: true }); }, 350);
+  }
+
+  function go(next, first) {
+    const prev = state;
+    if (prev.v === next.v && prev.post === next.post) return;
+    if (prev.v && prev.v !== 'c' && !prev.post) scrollMemo[prev.v] = window.scrollY;
+    const run = () => { state = next; render(prev); };
+    const insideC = prev.v === 'c' && next.v === 'c';
+    if (!first && !insideC && document.startViewTransition && !reduce.matches) document.startViewTransition(run);
+    else run();
+  }
+
+  /* ---------- switcher ---------- */
+  const sw = document.getElementById('sw'), ind = document.getElementById('sw-ind');
+  function syncSwitcher() {
+    sw.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', String(b.dataset.v === state.v)));
+    const b = sw.querySelector('[aria-current="true"]');
+    if (b) { ind.style.width = b.offsetWidth + 'px'; ind.style.transform = `translateX(${b.offsetLeft}px)`; }
+  }
+  sw.addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]'); if (!b) return;
+    location.hash = b.dataset.v + (state.post ? '-' + state.post : '');
+  });
+  addEventListener('resize', syncSwitcher);
+  if (document.fonts) document.fonts.ready.then(syncSwitcher);
+
+  /* ---------- theme toggle for C ---------- */
+  let localTheme = null;
+  try { localTheme = localStorage.getItem('blogproto.theme'); } catch (e) {}
+  if (localTheme) root.dataset.local = localTheme;
+  const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+  const isDark = () => root.dataset.local ? root.dataset.local === 'dark' : root.dataset.theme ? root.dataset.theme === 'dark' : darkMQ.matches;
+  function syncThemeIcon() { const t = document.getElementById('c-theme'); if (t) t.classList.toggle('is-dark', isDark()); }
+  darkMQ.addEventListener('change', syncThemeIcon);
+
+  /* ---------- events ---------- */
+  document.addEventListener('click', e => {
+    const like = e.target.closest('[data-like]');
+    if (like) {
+      e.preventDefault();
+      const id = like.dataset.like, p = POSTS.find(x => x.id === id);
+      liked.has(id) ? liked.delete(id) : liked.add(id);
+      saveLikes();
+      document.querySelectorAll(`[data-like="${id}"]`).forEach(el => {
+        el.setAttribute('aria-pressed', String(liked.has(id)));
+        el.querySelector('.n').textContent = count(p);
+      });
+      like.classList.remove('pop'); void like.offsetWidth; like.classList.add('pop');
+      return;
+    }
+    const copy = e.target.closest('.copy');
+    if (copy) {
+      const code = copy.parentElement.querySelector('code');
+      const done = t => { copy.textContent = t; setTimeout(() => { copy.textContent = 'Копировать'; }, 1500); };
+      const fallback = () => { const r = document.createRange(); r.selectNodeContents(code); const s = getSelection(); s.removeAllRanges(); s.addRange(r); done('Выделено, нажмите Ctrl+C'); };
+      try { navigator.clipboard.writeText(code.innerText).then(() => done('Скопировано'), fallback); } catch (err) { fallback(); }
+      return;
+    }
+    if (e.target.closest('#c-theme')) {
+      root.dataset.local = isDark() ? 'light' : 'dark';
+      try { localStorage.setItem('blogproto.theme', root.dataset.local); } catch (err) {}
+      syncThemeIcon();
+      return;
+    }
+    if (e.target.id === 'c-scrim') location.hash = 'c';
+  });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && state.v === 'c' && state.post) location.hash = 'c'; });
+  addEventListener('hashchange', () => go(parse()));
+
+  root.classList.add('boot');
+  go(parse(), true);
+  setTimeout(() => root.classList.remove('boot'), 1500);
+})();
+</script>

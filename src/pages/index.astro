@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import Profile from '../components/Profile.astro';
+import PostMeta from '../components/PostMeta.astro';
+import LikeButton from '../components/LikeButton.astro';
+import { getPosts } from '../lib/posts';
+
+const posts = await getPosts();
+---
+<Base>
+  <div class="B">
+    <Profile />
+    <main>
+      <h2 class="B-label">Последние записи</h2>
+      {posts.length === 0 && <p class="B-empty">Пока пусто. Добавь первый .md в src/content/posts.</p>}
+      {posts.map((post) => (
+        <article class="B-item">
+          <a class="cover" href={`/posts/${post.id}/`} aria-label={post.data.title}></a>
+          <PostMeta post={post} />
+          <h3 class="B-h" transition:name={`t-${post.id}`}><span class="u">{post.data.title}</span></h3>
+          <p class="B-ex">{post.data.excerpt}</p>
+          <div class="B-foot"><LikeButton slug={post.id} title={post.data.title} /></div>
+        </article>
+      ))}
+      <p class="B-foot-site">© {new Date().getFullYear()} · собрано из markdown</p>
+    </main>
+  </div>
+</Base>
