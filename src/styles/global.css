@@ -16,6 +16,25 @@
   color-scheme: light;
 }
 
+/* Тёмная тема «Ночь». data-theme на <html> ставит скрипт в <head> до первой отрисовки. */
+:root[data-theme="dark"] {
+  --bg: #0b0b0c;
+  --fg: #ededee;
+  --text: #a3a5ab;
+  --muted: #73757c;
+  --line: #1f2023;
+  --soft: #1b1c1f;
+  --accent: #9fb2e6;
+  --like: #ff4d6a;
+  --code-bg: #111214;
+  color-scheme: dark;
+}
+/* подсветка кода: Shiki кладёт цвета тёмной темы в --shiki-dark */
+:root[data-theme="dark"] .astro-code,
+:root[data-theme="dark"] .astro-code span { color: var(--shiki-dark) !important; }
+/* светлые схемы в постах в тёмной теме инвертируем; терминал и так тёмный */
+:root[data-theme="dark"] .md figure img[src$=".svg"]:not([src*="terminal"]) { filter: invert(.92) hue-rotate(180deg); }
+
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
@@ -77,6 +96,39 @@ h1, h2, h3, p { margin: 0; }
 /* счётчик прокручивается: старое и новое число лежат в одной ячейке грида */
 .like .n { display: inline-grid; height: 1.2em; line-height: 1.2em; overflow: hidden; min-width: 1ch; }
 .like .n > span { grid-area: 1 / 1; }
+
+/* кнопка темы: в правом верхнем углу страницы, при прокрутке уезжает вместе с контентом */
+.theme-toggle {
+  position: absolute; z-index: 5;
+  top: calc(16px + env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  width: 42px; height: 42px; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+  transition: transform .15s, background-color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-toggle:hover { background: var(--soft); }
+.theme-toggle:active { transform: scale(.92); }
+.theme-toggle svg { width: 21px; height: 21px; overflow: visible; }
+.theme-toggle svg * { transform-box: view-box; transform-origin: 12px 12px; }
+.theme-toggle .disk { transition: transform .5s cubic-bezier(.34, 1.4, .5, 1); }
+.theme-toggle .bite { transform: translate(7px, -4px); transition: transform .5s cubic-bezier(.4, 0, .2, 1); }
+.theme-toggle .rays { transition: transform .45s cubic-bezier(.34, 1.4, .5, 1), opacity .3s; }
+:root[data-theme="dark"] .theme-toggle .disk { transform: scale(1.75); }
+:root[data-theme="dark"] .theme-toggle .bite { transform: translate(0, 0); }
+:root[data-theme="dark"] .theme-toggle .rays { transform: rotate(-60deg) scale(.4); opacity: 0; }
+
+/* переход темы «Круг»: анимацию корня ведёт theme.ts. Правила действуют только во время смены темы,
+   чтобы не мешать переходам между страницами. Элементы с transition:name на это время прячем в общий снимок. */
+:root[data-theme-switching]::view-transition-old(root),
+:root[data-theme-switching]::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+:root[data-theme-switching="shrink"]::view-transition-old(root) { z-index: 2; }
+:root[data-theme-switching] * { view-transition-name: none !important; }
+:root[data-theme-switching] .theme-toggle { view-transition-name: theme-toggle !important; }
+:root[data-theme-switching]::view-transition-old(theme-toggle) { display: none; }
+:root[data-theme-switching]::view-transition-new(theme-toggle) { animation: none; }
+:root[data-theme-switching]::view-transition-group(theme-toggle) { animation: none; z-index: 3; }
 
 /* главная */
 .B {
@@ -157,6 +209,8 @@ h1, h2, h3, p { margin: 0; }
 @media (max-width: 860px) {
   .B { grid-template-columns: minmax(0, 1fr); gap: 48px; padding-top: 48px; }
   .B-aside { position: static; }
+  /* на узком экране шапка поста уходит под кнопку темы, освобождаем ей место */
+  .B-read { padding-top: 76px; }
 }
 @media (max-width: 560px) {
   .md { font-size: 17px; }

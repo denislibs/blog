@@ -2,6 +2,7 @@
 // Скрипт выполняется один раз; с ClientRouter страницы меняются без перезагрузки,
 // поэтому всё, что зависит от DOM, запускаем на каждом astro:page-load.
 import { playLike, playUnlike, rollCount, setCount } from './like-fx';
+import { syncThemeButton, toggleTheme } from './theme';
 
 const STORAGE_KEY = 'blog.likes';
 const counts = new Map<string, number>();
@@ -137,6 +138,11 @@ async function copyCode(btn: HTMLButtonElement) {
 
 document.addEventListener('click', (e) => {
   const target = e.target as Element;
+  const themeBtn = target.closest<HTMLButtonElement>('#theme-toggle');
+  if (themeBtn) {
+    toggleTheme(themeBtn);
+    return;
+  }
   const like = target.closest<HTMLButtonElement>('[data-like]');
   if (like) {
     e.preventDefault();
@@ -148,6 +154,7 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('astro:page-load', () => {
+  syncThemeButton();
   enhanceCode();
   loadCounts();
 });

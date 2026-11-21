@@ -8,7 +8,8 @@ export default defineConfig({
   // Страницы собираются в статику, сервер нужен только для /api/likes
   adapter: node({ mode: 'standalone' }),
   markdown: {
-    shikiConfig: { theme: 'github-light' },
+    // две темы подсветки: цвета тёмной лежат в CSS-переменных --shiki-dark, их включает global.css
+    shikiConfig: { themes: { light: 'github-light', dark: 'github-dark' } },
     rehypePlugins: [rehypeFigure],
   },
 });

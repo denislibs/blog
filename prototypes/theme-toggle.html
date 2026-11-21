@@ -1,0 +1,368 @@
+<title>Переключение темы</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500&display=swap">
+<style>
+/* Layout: the blog's own page (profile aside + post list) with a fixed theme button; the whole page switches theme.
+   Light = blog «Бумага», dark = prototype «Ночь». data-site-theme is ours, data-theme belongs to the host. */
+:root, :root[data-site-theme="light"] {
+  --bg: #ffffff;
+  --fg: #111214;
+  --text: #43464d;
+  --muted: #8a8d95;
+  --line: #e8e9ec;
+  --soft: #f2f3f5;
+  --like: #ff3b5c;
+  --code-bg: #f6f7f9;
+  --c-key: #cf222e;
+  --c-str: #0a3069;
+  --c-fn: #8250df;
+  --c-com: #6e7781;
+  --f-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --slow: 1;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-site-theme]) {
+    --bg: #0b0b0c; --fg: #ededee; --text: #a3a5ab; --muted: #6f7178; --line: #1e1f22; --soft: #1b1c1f;
+    --like: #ff4d6a; --code-bg: #111214; --c-key: #ff7b72; --c-str: #a5d6ff; --c-fn: #d2a8ff; --c-com: #8b949e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]:not([data-site-theme]),
+:root[data-site-theme="dark"] {
+  --bg: #0b0b0c; --fg: #ededee; --text: #a3a5ab; --muted: #6f7178; --line: #1e1f22; --soft: #1b1c1f;
+  --like: #ff4d6a; --code-bg: #111214; --c-key: #ff7b72; --c-str: #a5d6ff; --c-fn: #d2a8ff; --c-com: #8b949e;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p { margin: 0; }
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; border-radius: 8px; }
+
+/* view transitions: we drive the root animations ourselves from JS */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+:root[data-vt-shrink="1"]::view-transition-old(root) { z-index: 2; }
+.toggle { view-transition-name: theme-toggle; }
+::view-transition-old(theme-toggle) { display: none; }
+::view-transition-new(theme-toggle) { animation: none; }
+::view-transition-group(theme-toggle) { animation: none; z-index: 3; }
+
+/* ---------- prototype controls ---------- */
+.proto {
+  max-width: 1120px; margin: 0 auto;
+  padding-block: 40px 8px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.proto-box { border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 16px; }
+.proto h1 { font: 500 clamp(26px, 4vw, 34px)/1.15 var(--f-serif); letter-spacing: -.02em; }
+.proto .lead { font: 15px/1.6 var(--f-body); color: var(--text); max-width: 70ch; margin-top: 8px; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 12px 28px; }
+.ctrl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ctrl-label { font: 500 12px var(--f-body); color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px; background: var(--soft); }
+.seg button {
+  border: 0; background: none; cursor: pointer; padding: 7px 13px; border-radius: 999px;
+  font: 500 13px var(--f-body); color: var(--muted);
+}
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.hint { font: 13px/1.5 var(--f-body); color: var(--muted); }
+
+/* ---------- theme button ---------- */
+.toggle {
+  position: fixed; z-index: 20;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  height: 44px; min-width: 44px; padding: 0; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+  display: grid; place-items: center; cursor: pointer;
+  box-shadow: 0 6px 20px -10px rgba(0, 0, 0, .35);
+  -webkit-tap-highlight-color: transparent;
+}
+.toggle:active { transform: scale(.94); }
+.icon { display: none; }
+.toggle[data-icon="morph"] .icon-morph,
+.toggle[data-icon="rotate"] .icon-rotate,
+.toggle[data-icon="switch"] .icon-switch { display: block; }
+.toggle[data-icon="switch"] { padding: 0 6px; border-color: transparent; background: transparent; box-shadow: none; }
+
+/* A: sun morphs into moon */
+.icon-morph { width: 22px; height: 22px; overflow: visible; }
+.icon-morph * { transform-box: view-box; transform-origin: 12px 12px; }
+.icon-morph .disk { transition: transform calc(500ms * var(--slow)) cubic-bezier(.34, 1.4, .5, 1); }
+.icon-morph .bite { transform: translate(7px, -4px); transition: transform calc(500ms * var(--slow)) cubic-bezier(.4, 0, .2, 1); }
+.icon-morph .rays { transition: transform calc(450ms * var(--slow)) cubic-bezier(.34, 1.4, .5, 1), opacity calc(300ms * var(--slow)); }
+[data-site-theme="dark"] .icon-morph .disk { transform: scale(1.75); }
+[data-site-theme="dark"] .icon-morph .bite { transform: translate(0, 0); }
+[data-site-theme="dark"] .icon-morph .rays { transform: rotate(-60deg) scale(.4); opacity: 0; }
+
+/* B: sun and moon swap with a turn */
+.icon-rotate { position: relative; width: 22px; height: 22px; }
+.icon-rotate svg { position: absolute; inset: 0; width: 22px; height: 22px; transition: transform calc(550ms * var(--slow)) cubic-bezier(.34, 1.3, .5, 1), opacity calc(300ms * var(--slow)); }
+.icon-rotate .moon { transform: rotate(-120deg) scale(.4); opacity: 0; }
+[data-site-theme="dark"] .icon-rotate .sun { transform: rotate(120deg) scale(.4); opacity: 0; }
+[data-site-theme="dark"] .icon-rotate .moon { transform: none; opacity: 1; }
+
+/* C: day and night switch */
+.icon-switch { position: relative; width: 60px; height: 32px; border-radius: 999px; overflow: hidden; }
+.icon-switch .sky, .icon-switch .night { position: absolute; inset: 0; transition: opacity calc(500ms * var(--slow)); }
+.icon-switch .sky { background: linear-gradient(180deg, #6cc6ff, #bfe8ff); }
+.icon-switch .night { background: linear-gradient(180deg, #121633, #2a3166); opacity: 0; }
+[data-site-theme="dark"] .icon-switch .night { opacity: 1; }
+.icon-switch .cloud {
+  position: absolute; height: 9px; border-radius: 9px; background: #fff; opacity: .95;
+  transition: transform calc(600ms * var(--slow)) cubic-bezier(.4, 0, .2, 1), opacity calc(400ms * var(--slow));
+}
+.icon-switch .c1 { width: 22px; right: 4px; bottom: 6px; }
+.icon-switch .c2 { width: 14px; right: 16px; bottom: 11px; opacity: .8; }
+[data-site-theme="dark"] .icon-switch .cloud { transform: translateY(16px); opacity: 0; }
+.icon-switch .star {
+  position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff;
+  transform: scale(0); transition: transform calc(400ms * var(--slow)) cubic-bezier(.34, 1.8, .5, 1);
+}
+.icon-switch .s1 { left: 9px; top: 8px; }
+.icon-switch .s2 { left: 17px; top: 19px; width: 2px; height: 2px; }
+.icon-switch .s3 { left: 24px; top: 9px; width: 2px; height: 2px; }
+[data-site-theme="dark"] .icon-switch .star { transform: scale(1); }
+[data-site-theme="dark"] .icon-switch .s2 { transition-delay: calc(80ms * var(--slow)); }
+[data-site-theme="dark"] .icon-switch .s3 { transition-delay: calc(160ms * var(--slow)); }
+.icon-switch .knob {
+  position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%;
+  background: #ffc83d; box-shadow: 0 0 0 4px rgba(255, 216, 102, .35), 0 2px 6px rgba(0, 0, 0, .2);
+  transition: transform calc(550ms * var(--slow)) cubic-bezier(.34, 1.35, .5, 1), background-color calc(450ms * var(--slow)), box-shadow calc(450ms * var(--slow));
+}
+[data-site-theme="dark"] .icon-switch .knob { transform: translateX(28px); background: #e8e9f0; box-shadow: 0 0 0 4px rgba(232, 233, 240, .12), 0 2px 6px rgba(0, 0, 0, .4); }
+.icon-switch .crater { position: absolute; border-radius: 50%; background: #c8cad6; opacity: 0; transition: opacity calc(400ms * var(--slow)) calc(150ms * var(--slow)); }
+.icon-switch .k1 { width: 7px; height: 7px; left: 5px; top: 6px; }
+.icon-switch .k2 { width: 4px; height: 4px; left: 14px; top: 13px; }
+.icon-switch .k3 { width: 3px; height: 3px; left: 8px; top: 15px; }
+[data-site-theme="dark"] .icon-switch .crater { opacity: 1; }
+
+/* ---------- the blog itself ---------- */
+.B {
+  display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 72px;
+  max-width: 1120px; margin: 0 auto;
+  padding-block: 40px 96px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.aside { position: sticky; top: 80px; align-self: start; display: flex; flex-direction: column; gap: 12px; }
+.avatar {
+  width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center;
+  background: linear-gradient(135deg, #d7d9de, #585c66); color: #fff; font: 500 34px var(--f-serif);
+}
+.name { margin-top: 8px; font: 500 28px/1.1 var(--f-serif); letter-spacing: -.02em; }
+.role { font: 500 15px var(--f-body); color: var(--muted); }
+.bio { margin-top: 4px; font: 15px/1.6 var(--f-body); color: var(--text); }
+.links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.links span { font: 500 13px var(--f-body); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); }
+.label { font: 500 13px var(--f-body); color: var(--muted); padding-bottom: 14px; }
+.item { display: grid; gap: 12px; padding: 28px 0; border-top: 1px solid var(--line); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { padding: 3px 8px; border-radius: 6px; background: var(--soft); font: 600 13px/1.4 var(--f-body); }
+.chip.ghost { background: none; color: var(--muted); font-weight: 500; padding-inline: 2px; }
+.h { font: 500 clamp(22px, 2.6vw, 30px)/1.18 var(--f-serif); letter-spacing: -.02em; text-wrap: balance; }
+.ex { font: 16px/1.6 var(--f-body); color: var(--text); max-width: 60ch; }
+.foot { display: flex; justify-content: flex-end; }
+.like { display: inline-flex; align-items: center; gap: 6px; font: 500 13px var(--f-mono); color: var(--muted); }
+.like svg { width: 16px; height: 16px; }
+.like.on { color: var(--fg); }
+pre {
+  margin: 4px 0 0; padding: 16px 18px; border-radius: 10px; overflow-x: auto;
+  background: var(--code-bg); border: 1px solid var(--line);
+  font: 13.5px/1.65 var(--f-mono); color: var(--fg);
+}
+.k { color: var(--c-key); } .s { color: var(--c-str); } .f { color: var(--c-fn); } .c { color: var(--c-com); font-style: italic; }
+
+@media (max-width: 860px) {
+  .B { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .aside { position: static; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; transition-delay: 0s !important; }
+}
+</style>
+
+<button type="button" class="toggle" id="toggle" data-icon="morph" aria-label="Включить тёмную тему">
+  <svg class="icon icon-morph" viewBox="0 0 24 24" aria-hidden="true">
+    <defs><mask id="moon-bite"><rect x="-6" y="-6" width="36" height="36" fill="#fff"/><circle class="bite" cx="16.5" cy="7.5" r="6.2" fill="#000"/></mask></defs>
+    <g mask="url(#moon-bite)"><circle class="disk" cx="12" cy="12" r="4.6" fill="currentColor"/></g>
+    <g class="rays" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M12 1.8v2.3M12 19.9v2.3M1.8 12h2.3M19.9 12h2.3M4.8 4.8l1.6 1.6M17.6 17.6l1.6 1.6M4.8 19.2l1.6-1.6M17.6 6.4l1.6-1.6"/>
+    </g>
+  </svg>
+  <span class="icon icon-rotate" aria-hidden="true">
+    <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.4" fill="currentColor" stroke="none"/><path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M4.9 19.1l1.5-1.5M17.6 6.4l1.5-1.5"/></svg>
+    <svg class="moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.6 8.6 0 0 1 9.8 3.5a8.6 8.6 0 1 0 10.7 10.7z" fill="currentColor"/></svg>
+  </span>
+  <span class="icon icon-switch" aria-hidden="true">
+    <span class="sky"></span><span class="night"></span>
+    <span class="star s1"></span><span class="star s2"></span><span class="star s3"></span>
+    <span class="cloud c2"></span><span class="cloud c1"></span>
+    <span class="knob"><span class="crater k1"></span><span class="crater k2"></span><span class="crater k3"></span></span>
+  </span>
+</button>
+
+<header class="proto">
+  <div class="proto-box">
+    <div>
+      <h1>Переключение темы</h1>
+      <p class="lead">Выбери анимацию перехода и вид кнопки, потом нажимай кнопку в правом верхнем углу. Переключается вся страница, а ниже лежит обычная главная блога с постами и кодом, чтобы было видно тему на настоящем контенте.</p>
+    </div>
+    <div class="ctrls">
+      <div class="ctrl" role="group" aria-labelledby="l-vt">
+        <span class="ctrl-label" id="l-vt">Переход</span>
+        <div class="seg" id="seg-vt">
+          <button type="button" id="vt-circle" data-v="circle" aria-pressed="true">Круг</button>
+          <button type="button" id="vt-curtain" data-v="curtain" aria-pressed="false">Шторка</button>
+          <button type="button" id="vt-diagonal" data-v="diagonal" aria-pressed="false">Диагональ</button>
+          <button type="button" id="vt-fade" data-v="fade" aria-pressed="false">Растворение</button>
+        </div>
+      </div>
+      <div class="ctrl" role="group" aria-labelledby="l-icon">
+        <span class="ctrl-label" id="l-icon">Кнопка</span>
+        <div class="seg" id="seg-icon">
+          <button type="button" id="ic-morph" data-v="morph" aria-pressed="true">Солнце в луну</button>
+          <button type="button" id="ic-rotate" data-v="rotate" aria-pressed="false">Поворот</button>
+          <button type="button" id="ic-switch" data-v="switch" aria-pressed="false">День и ночь</button>
+        </div>
+      </div>
+      <div class="ctrl" role="group" aria-labelledby="l-speed">
+        <span class="ctrl-label" id="l-speed">Скорость</span>
+        <div class="seg" id="seg-speed">
+          <button type="button" id="sp-1" data-v="1" aria-pressed="true">1×</button>
+          <button type="button" id="sp-4" data-v="4" aria-pressed="false">0,25×</button>
+        </div>
+      </div>
+    </div>
+    <p class="hint" id="hint">Круг расходится от кнопки. Когда возвращаешься к светлой теме, тёмная, наоборот, сворачивается обратно в кнопку.</p>
+  </div>
+</header>
+
+<div class="B">
+  <aside class="aside">
+    <div class="avatar" aria-hidden="true">Д</div>
+    <h2 class="name">Денис Фамилия</h2>
+    <p class="role">Frontend-разработчик</p>
+    <p class="bio">Пишу про производительность интерфейсов, React, базы данных и инструменты, которые экономят время.</p>
+    <div class="links"><span>GitHub</span><span>Telegram</span><span>LinkedIn</span></div>
+  </aside>
+  <main>
+    <h2 class="label">Последние записи</h2>
+    <article class="item">
+      <div class="chips"><span class="chip">21 нояб. 2026 г.</span><span class="chip ghost">16 мин</span><span class="chip ghost">#perf</span><span class="chip ghost">#flutter</span></div>
+      <h3 class="h">Кто ждёт кадра: как рендерят React, Vue, Flutter, SwiftUI и Compose</h3>
+      <p class="ex">Веб-фреймворки меняют интерфейс сразу, а Flutter, SwiftUI и Jetpack Compose ждут сигнала экрана.</p>
+      <pre><code><span class="c">// Flutter: setState только помечает элемент</span>
+<span class="f">setState</span>(() { count++; });  <span class="c">// build будет в следующем кадре</span>
+<span class="k">await</span> tester.<span class="f">pump</span>();         <span class="c">// в тестах кадр прокручивают вручную</span></code></pre>
+      <div class="foot"><span class="like on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="var(--like)"/></svg>48</span></div>
+    </article>
+    <article class="item">
+      <div class="chips"><span class="chip">21 нояб. 2026 г.</span><span class="chip ghost">33 мин</span><span class="chip ghost">#perf</span><span class="chip ghost">#css</span></div>
+      <h3 class="h">Перформанс-гайдлайн: анимации на 120 fps</h3>
+      <p class="ex">На экране 120 Гц у кадра всего 8,3 мс. Разбираемся, как браузер рисует кадр и что можно анимировать без опаски.</p>
+      <pre><code><span class="k">const</span> widths = items.<span class="f">map</span>((el) => el.offsetWidth); <span class="c">// сначала читаем</span>
+items.<span class="f">forEach</span>((el, i) => { el.style.height = <span class="s">`${widths[i] / 2}px`</span>; });</code></pre>
+      <div class="foot"><span class="like"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>64</span></div>
+    </article>
+    <article class="item">
+      <div class="chips"><span class="chip">4 нояб. 2026 г.</span><span class="chip ghost">7 мин</span><span class="chip ghost">#react</span></div>
+      <h3 class="h">Детокс от useEffect</h3>
+      <p class="ex">Было 214 эффектов, стало 38. Три паттерна, которые я убрал из кода первыми.</p>
+      <div class="foot"><span class="like"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>342</span></div>
+    </article>
+  </main>
+</div>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const btn = document.getElementById('toggle');
+  const hint = document.getElementById('hint');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  let variant = 'circle';
+  let slow = 1;
+
+  const HINTS = {
+    circle: 'Круг расходится от кнопки. Когда возвращаешься к светлой теме, тёмная, наоборот, сворачивается обратно в кнопку.',
+    curtain: 'Новая тема опускается сверху, как штора. Назад она поднимается вверх.',
+    diagonal: 'Новая тема заливает страницу по диагонали из угла, где стоит кнопка.',
+    fade: 'Спокойный вариант: старая тема растворяется и чуть отъезжает назад, новая проявляется поверх.',
+  };
+
+  // начальная тема: то, что выбрано в системе или у хоста
+  const startDark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.siteTheme = startDark ? 'dark' : 'light';
+  const label = () => btn.setAttribute('aria-label', root.dataset.siteTheme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему');
+  label();
+
+  // анимации псевдоэлементов переживают сам переход, поэтому после каждого их отменяем
+  const live = [];
+  const clearLive = () => live.splice(0).forEach((a) => a.cancel());
+
+  function run(next, x, y) {
+    const w = innerWidth, h = innerHeight;
+    const R = Math.hypot(Math.max(x, w - x), Math.max(y, h - y));
+    const toDark = next === 'dark';
+    const opt = (ms, easing, pseudoElement, delay = 0) => ({ duration: ms * slow, delay: delay * slow, easing, pseudoElement, fill: 'both' });
+    const NEW = '::view-transition-new(root)', OLD = '::view-transition-old(root)';
+    const go = (frames, options) => live.push(root.animate(frames, options));
+
+    if (variant === 'circle') {
+      const small = `circle(0px at ${x}px ${y}px)`, big = `circle(${R}px at ${x}px ${y}px)`;
+      if (toDark) go({ clipPath: [small, big] }, opt(650, 'cubic-bezier(.7,0,.3,1)', NEW));
+      else go({ clipPath: [big, small] }, opt(600, 'cubic-bezier(.7,0,.3,1)', OLD));
+    } else if (variant === 'curtain') {
+      const from = toDark ? 'inset(0 0 100% 0)' : 'inset(100% 0 0 0)';
+      go({ clipPath: [from, 'inset(0 0 0 0)'] }, opt(720, 'cubic-bezier(.77,0,.18,1)', NEW));
+    } else if (variant === 'diagonal') {
+      // треугольник растёт из угла с кнопкой и накрывает весь экран
+      const cx = (x / w) * 100, cy = (y / h) * 100;
+      const p0 = `polygon(${cx}% ${cy}%, ${cx}% ${cy}%, ${cx}% ${cy}%)`;
+      const p1 = `polygon(${cx}% ${cy}%, ${cx - 260}% ${cy - 20}%, ${cx + 40}% ${cy + 300}%)`;
+      go({ clipPath: [p0, p1] }, opt(760, 'cubic-bezier(.65,0,.35,1)', NEW));
+    } else {
+      go({ opacity: [1, 0], transform: ['scale(1)', 'scale(.985)'] }, opt(420, 'cubic-bezier(.4,0,1,1)', OLD));
+      go({ opacity: [0, 1], transform: ['scale(1.015)', 'scale(1)'] }, opt(520, 'cubic-bezier(0,0,.2,1)', NEW, 60));
+    }
+  }
+
+  // целевая тема меняется сразу на клике: переход стартует только на следующем кадре,
+  // и быстрый второй клик иначе посчитал бы тему от старого состояния
+  let target = root.dataset.siteTheme;
+  btn.addEventListener('click', () => {
+    const next = target === 'dark' ? 'light' : 'dark';
+    target = next;
+    const apply = () => { root.dataset.siteTheme = next; label(); };
+    if (!document.startViewTransition || reduce.matches) return apply();
+
+    const r = btn.getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    // при возврате к светлой круг сворачивается: старый снимок кладём сверху
+    clearLive();
+    root.dataset.vtShrink = variant === 'circle' && next === 'light' ? '1' : '';
+    const t = document.startViewTransition(apply);
+    t.ready.then(() => run(next, x, y)).catch(() => {});
+    t.finished.finally(() => { root.dataset.vtShrink = ''; clearLive(); });
+  });
+
+  function segment(id, onPick) {
+    const seg = document.getElementById(id);
+    seg.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-v]');
+      if (!b) return;
+      seg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      onPick(b.dataset.v);
+    });
+  }
+  segment('seg-vt', (v) => { variant = v; hint.textContent = HINTS[v]; });
+  segment('seg-icon', (v) => { btn.dataset.icon = v; });
+  segment('seg-speed', (v) => { slow = +v; root.style.setProperty('--slow', v); });
+})();
+</script>

@@ -1,6 +1,7 @@
 ---
 import { ClientRouter } from 'astro:transitions';
 import LikeDefs from '../components/LikeDefs.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
 import { SITE } from '../site.config';
 import '../styles/global.css';
 
@@ -17,6 +18,20 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Тема ставится до первой отрисовки, иначе тёмная страница на миг мелькнёт светлой.
+         ClientRouter при переходе меняет атрибуты <html> на новые, поэтому тему возвращаем после каждой подмены. -->
+    <script is:inline>
+      (() => {
+        const media = matchMedia('(prefers-color-scheme: dark)');
+        const saved = () => { try { return localStorage.getItem('blog.theme'); } catch { return null; } };
+        const pick = () => { const s = saved(); return s === 'dark' || s === 'light' ? s : media.matches ? 'dark' : 'light'; };
+        const apply = () => { document.documentElement.dataset.theme = pick(); };
+        apply();
+        document.addEventListener('astro:after-swap', apply);
+        // пока пользователь сам не выбрал тему, следуем за системой
+        media.addEventListener('change', () => { if (!saved()) apply(); });
+      })();
+    </script>
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -35,6 +50,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   </head>
   <body>
     <LikeDefs />
+    <ThemeToggle />
     <slot />
     <script>
       import '../scripts/client';
