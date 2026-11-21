@@ -1,5 +1,6 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import LikeDefs from '../components/LikeDefs.astro';
 import { SITE } from '../site.config';
 import '../styles/global.css';
 
@@ -33,6 +34,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <ClientRouter />
   </head>
   <body>
+    <LikeDefs />
     <slot />
     <script>
       import '../scripts/client';

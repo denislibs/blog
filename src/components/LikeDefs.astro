@@ -1,0 +1,16 @@
+---
+// Невидимый SVG с градиентами для кнопки лайка. Один раз на страницу.
+// display: none здесь нельзя: в некоторых браузерах градиенты из скрытого SVG перестают работать.
+import { LIKE_GRADIENTS } from '../lib/heart';
+---
+<svg class="like-defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    {LIKE_GRADIENTS.map(([a, b, c], i) => (
+      <linearGradient id={i === 0 ? 'like-grad' : `like-grad-${i}`} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color={a}></stop>
+        {c ? <stop offset=".55" stop-color={b}></stop> : <stop offset="1" stop-color={b}></stop>}
+        {c && <stop offset="1" stop-color={c}></stop>}
+      </linearGradient>
+    ))}
+  </defs>
+</svg>

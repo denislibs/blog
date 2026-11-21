@@ -1,5 +1,8 @@
 ---
-// Счётчик подгружается с /api/likes скриптом src/scripts/client.ts
+// Счётчик подгружается с /api/likes, анимация «Фонтан» живёт в src/scripts/like-fx.ts.
+// Градиенты для сердец лежат в LikeDefs.astro (подключён в Base.astro).
+import { HEART_PATH } from '../lib/heart';
+
 interface Props {
   slug: string;
   title: string;
@@ -14,6 +17,12 @@ const { slug, title, size = 'md' } = Astro.props;
   aria-pressed="false"
   aria-label={`Нравится: ${title}`}
 >
-  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+  <span class="like-icon" aria-hidden="true">
+    <svg class="like-fx" viewBox="-24 -24 72 72"></svg>
+    <svg class="like-heart" viewBox="0 0 24 24">
+      <path class="like-outline" d={HEART_PATH}></path>
+      <path class="like-fill" d={HEART_PATH}></path>
+    </svg>
+  </span>
   <span class="n"></span>
 </button>

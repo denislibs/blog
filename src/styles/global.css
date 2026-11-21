@@ -7,7 +7,7 @@
   --line: #e8e9ec;
   --soft: #f2f3f5;
   --accent: #2b55c9;
-  --like: #e5484d;
+  --like: #ff3b5c;
   --code-bg: #f6f7f9;
   --f-serif: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
   --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -57,21 +57,26 @@ h1, h2, h3, p { margin: 0; }
   transition: color .2s, background-color .2s;
 }
 .like:hover { color: var(--fg); background: var(--soft); }
-.like .n { min-width: 1ch; }
-.like svg { width: 16px; height: 16px; fill: transparent; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; transition: fill .25s, stroke .25s; }
+.like:active { transform: scale(.96); }
 .like[aria-pressed="true"] { color: var(--fg); }
-.like[aria-pressed="true"] svg { fill: var(--like); stroke: var(--like); }
-.like::before {
-  content: ""; position: absolute; left: 9px; top: 50%; width: 16px; height: 16px; margin-top: -8px;
-  border-radius: 50%; border: 2px solid var(--like); opacity: 0; pointer-events: none;
-}
-.like.pop svg { animation: pop .5s cubic-bezier(.2, 1.7, .4, 1); }
-.like.pop[aria-pressed="true"]::before { animation: ring .55s ease-out; }
 .like.lg { padding: 10px 16px; font-size: 14px; border: 1px solid var(--line); gap: 8px; background: var(--bg); }
-.like.lg svg { width: 19px; height: 19px; }
-.like.lg::before { left: 16px; width: 19px; height: 19px; margin-top: -9.5px; }
-@keyframes pop { 0% { transform: scale(1); } 35% { transform: scale(1.4); } 100% { transform: scale(1); } }
-@keyframes ring { 0% { opacity: .9; transform: scale(.4); } 100% { opacity: 0; transform: scale(2.3); } }
+
+/* сердце: контур, заливка градиентом и слой эффектов втрое больше иконки для фонтана */
+.like-icon { position: relative; width: 16px; height: 16px; flex: none; }
+.like.lg .like-icon { width: 19px; height: 19px; }
+.like-icon svg { position: absolute; overflow: visible; pointer-events: none; }
+.like-heart { inset: 0; width: 100%; height: 100%; }
+.like-fx { left: -100%; top: -100%; width: 300%; height: 300%; }
+.like-heart *, .like-fx * { transform-box: fill-box; transform-origin: center; }
+.like-outline { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; transition: stroke .25s; }
+.like-fill { fill: url(#like-grad); opacity: 0; }
+.like[aria-pressed="true"] .like-outline { stroke: var(--like); }
+.like[aria-pressed="true"] .like-fill { opacity: 1; }
+.like-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* счётчик прокручивается: старое и новое число лежат в одной ячейке грида */
+.like .n { display: inline-grid; height: 1.2em; line-height: 1.2em; overflow: hidden; min-width: 1ch; }
+.like .n > span { grid-area: 1 / 1; }
 
 /* главная */
 .B {

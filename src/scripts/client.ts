@@ -1,6 +1,7 @@
 // Клиентская часть: лайки и кнопки «Копировать» у блоков кода.
 // Скрипт выполняется один раз; с ClientRouter страницы меняются без перезагрузки,
 // поэтому всё, что зависит от DOM, запускаем на каждом astro:page-load.
+import { playLike, playUnlike, rollCount, setCount } from './like-fx';
 
 const STORAGE_KEY = 'blog.likes';
 const counts = new Map<string, number>();
@@ -24,12 +25,17 @@ function buttons(slug?: string) {
   return [...document.querySelectorAll<HTMLButtonElement>(sel)];
 }
 
-function paint(slug: string) {
+// rolled: кнопка, на которой счётчик надо прокрутить, а не просто заменить
+function paint(slug: string, rolled?: { btn: HTMLButtonElement; dir: 1 | -1 }) {
   const liked = readLiked().has(slug);
   for (const b of buttons(slug)) {
     b.setAttribute('aria-pressed', String(liked));
-    const n = b.querySelector('.n');
-    if (n && counts.has(slug)) n.textContent = String(counts.get(slug));
+    const n = b.querySelector<HTMLElement>('.n');
+    if (!n || !counts.has(slug)) continue;
+    const value = String(counts.get(slug));
+    if (n.dataset.value === value) continue;
+    if (rolled && rolled.btn === b) rollCount(n, value, rolled.dir);
+    else setCount(n, value);
   }
 }
 
@@ -61,10 +67,9 @@ async function toggleLike(btn: HTMLButtonElement) {
   wasLiked ? liked.delete(slug) : liked.add(slug);
   writeLiked(liked);
   if (before !== undefined) counts.set(slug, Math.max(0, before + (wasLiked ? -1 : 1)));
-  paint(slug);
-  btn.classList.remove('pop');
-  void btn.offsetWidth; // перезапуск анимации
-  btn.classList.add('pop');
+  paint(slug, { btn, dir: wasLiked ? -1 : 1 });
+  if (wasLiked) playUnlike(btn);
+  else playLike(btn);
 
   try {
     const res = await fetch('/api/likes', {

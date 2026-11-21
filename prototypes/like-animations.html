@@ -1,0 +1,574 @@
+<title>Анимации лайка</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Source+Serif+4:opsz,wght@8..60,500&display=swap">
+<style>
+/* Layout: one light page in the blog's own look; a grid of cards, each card a soft stage with one like button. */
+:root {
+  --bg: #ffffff;
+  --fg: #111214;
+  --text: #43464d;
+  --muted: #8a8d95;
+  --line: #e8e9ec;
+  --stage: #f2f3f5;
+  --like: #ff3b5c;
+  --like-2: #ff7a45;
+  --like-3: #ff5fa2;
+  --f-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); -webkit-font-smoothing: antialiased; }
+h1, h2, p { margin: 0; }
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; border-radius: 6px; }
+
+.page {
+  max-width: 1120px; margin: 0 auto;
+  padding-block: 56px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 24px; }
+.head h1 { font: 500 clamp(32px, 5vw, 44px)/1.1 var(--f-serif); letter-spacing: -.02em; }
+.lead { margin-top: 12px; max-width: 58ch; font: 16px/1.6 var(--f-body); color: var(--text); }
+
+.speed { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--stage); }
+.speed button {
+  border: 0; background: none; cursor: pointer; padding: 7px 14px; border-radius: 999px;
+  font: 500 13px var(--f-body); color: var(--muted); transition: background-color .2s, color .2s;
+}
+.speed button[aria-pressed="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 2px rgba(17, 18, 20, .08); }
+.speed-label { font: 500 12px var(--f-body); color: var(--muted); margin-right: 8px; }
+.speed-wrap { display: flex; align-items: center; }
+
+.section-title { margin-top: 48px; font: 500 13px var(--f-body); color: var(--muted); }
+.section-title + .grid { margin-top: 16px; }
+.grid { margin-top: 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.card { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.stage {
+  position: relative; height: 180px; border-radius: 16px; background: var(--stage);
+  display: grid; place-items: center;
+}
+.replay {
+  position: absolute; right: 10px; bottom: 10px; border: 0; background: none; cursor: pointer;
+  font: 500 12px var(--f-body); color: var(--muted); padding: 6px 8px; border-radius: 8px;
+}
+.replay:hover { color: var(--fg); background: rgba(17, 18, 20, .05); }
+.meta { display: flex; flex-direction: column; gap: 6px; }
+.meta h2 { font: 500 21px/1.2 var(--f-serif); letter-spacing: -.01em; display: flex; gap: 10px; align-items: baseline; }
+.meta h2 span { font: 500 12px var(--f-mono); color: var(--muted); letter-spacing: 0; }
+.meta p { font: 14px/1.55 var(--f-body); color: var(--text); }
+.tech { font: 500 12px var(--f-mono); color: var(--muted); }
+
+/* the button itself, same shape as the blog's large like */
+.like {
+  position: relative; display: inline-flex; align-items: center; gap: 9px;
+  padding: 10px 16px 10px 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--muted); cursor: pointer;
+  font: 500 15px/1 var(--f-mono); font-variant-numeric: tabular-nums;
+  transition: color .2s, border-color .2s, transform .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.like:hover { color: var(--fg); }
+.like:active { transform: scale(.96); }
+.like[aria-pressed="true"] { color: var(--fg); }
+.icon { position: relative; width: 22px; height: 22px; flex: none; }
+.icon svg { position: absolute; overflow: visible; pointer-events: none; }
+.hs { inset: 0; width: 22px; height: 22px; }
+.fx { left: -22px; top: -22px; width: 66px; height: 66px; }
+.hs *, .fx * { transform-box: fill-box; transform-origin: center; }
+/* groups holding offset content (wave, shine) scale around the heart's own centre */
+.hs .squish, .hs .body { transform-box: view-box; transform-origin: 12px 12.2px; }
+.outline { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; transition: stroke .25s; }
+.like[aria-pressed="true"] .outline { stroke: var(--like); }
+.count { display: inline-grid; height: 1.2em; line-height: 1.2em; overflow: hidden; min-width: 2ch; }
+.count > span { grid-area: 1 / 1; }
+
+.foot { margin-top: 48px; font: 13px/1.6 var(--f-body); color: var(--muted); max-width: 70ch; }
+
+@media (max-width: 900px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .page { padding-top: 36px; }
+}
+</style>
+
+<main class="page">
+  <header class="head">
+    <div>
+      <h1>Анимации лайка</h1>
+      <p class="lead">Сверху три новые версии «Роя», каждая со своей физикой. Ниже первые шесть вариантов для сравнения. Нажми на сердечко, чтобы поставить лайк, и ещё раз, чтобы снять. Замедление помогает разглядеть детали.</p>
+    </div>
+    <div class="speed-wrap">
+      <span class="speed-label" id="speed-label">Скорость</span>
+      <div class="speed" role="group" aria-labelledby="speed-label">
+        <button type="button" id="speed-1" data-speed="1" aria-pressed="true">1×</button>
+        <button type="button" id="speed-4" data-speed="4" aria-pressed="false">0,25×</button>
+      </div>
+    </div>
+  </header>
+  <h2 class="section-title">Рой, новые версии</h2>
+  <section class="grid" id="grid-swarm" aria-label="Новые версии роя"></section>
+  <h2 class="section-title">Первые шесть вариантов</h2>
+  <section class="grid" id="grid" aria-label="Варианты анимации"></section>
+  <p class="foot">Во всех вариантах анимируются только transform, opacity и обводка маленького SVG, поэтому они дешёвые даже на 120 Гц. Счётчик прокручивается вверх при лайке и вниз при отмене. Если в системе включено «уменьшение движения», лайк ставится без анимации.</p>
+</main>
+
+<script>
+(() => {
+  const HEART = 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z';
+  const PALETTE = ['#ff3b5c', '#ff7a45', '#ffb800', '#ff5fa2', '#9b6bff', '#2fc4ff'];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  let slow = 1;
+
+  /* all motion goes through WAAPI so the speed switch can stretch it */
+  function anim(el, frames, o = {}) {
+    const t = reduce.matches ? 0 : slow;
+    return el.animate(frames, {
+      duration: Math.max(1, (o.duration ?? 400) * t),
+      delay: (o.delay ?? 0) * t,
+      easing: o.easing ?? 'cubic-bezier(.2, .8, .2, 1)',
+      fill: o.fill ?? 'both',
+      iterations: o.iterations ?? 1,
+    });
+  }
+  const stop = (...els) => els.forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
+  const ns = 'http://www.w3.org/2000/svg';
+  const svgEl = (tag, attrs) => { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+  const rand = (a, b) => a + Math.random() * (b - a);
+
+  /* spring sampled at 60 fps, returns positions and velocities */
+  function spring(from, to, { stiffness = 300, damping = 13 } = {}) {
+    let x = from, v = 0; const xs = [], vs = [];
+    const dt = 1 / 240;
+    for (let i = 0; i < 960; i++) {
+      v += (-stiffness * (x - to) - damping * v) * dt;
+      x += v * dt;
+      if (i % 4 === 0) { xs.push(x); vs.push(v); }
+      if (i > 60 && Math.abs(x - to) < 0.0015 && Math.abs(v) < 0.02) break;
+    }
+    xs.push(to); vs.push(0);
+    return { xs, vs, duration: xs.length * (1000 / 60) };
+  }
+
+  const gradient = (id) => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ff5fa2"/><stop offset=".55" stop-color="#ff3b5c"/><stop offset="1" stop-color="#ff7a45"/></linearGradient></defs>`;
+
+  /* ---------- variants ---------- */
+  const VARIANTS = [
+    {
+      key: 'A', name: 'Вспышка', count: 41, tech: 'кольцо + 14 частиц',
+      desc: 'Сердце вылетает из кольца, а вокруг разлетаются цветные точки. Самый праздничный вариант.',
+      build(hs, fx) {
+        hs.innerHTML = `${gradient('gA')}<path class="outline" d="${HEART}"/><path class="fill" d="${HEART}" fill="url(#gA)" opacity="0"/>`;
+        fx.innerHTML = `<circle class="ring" cx="12" cy="12.5" r="9" fill="none" stroke="url(#gA)" stroke-width="9" opacity="0"/>`;
+        const fill = hs.querySelector('.fill'), ring = fx.querySelector('.ring');
+        const dots = [];
+        for (let i = 0; i < 7; i++) {
+          const a = (i / 7) * Math.PI * 2 - Math.PI / 2;
+          [[0, 2.3, 0], [0.34, 1.5, 1]].forEach(([off, r, k]) => {
+            const c = svgEl('circle', { cx: 12, cy: 12.5, r, fill: PALETTE[(i + k * 3) % PALETTE.length], opacity: 0 });
+            c.dataset.a = a + off; fx.append(c); dots.push(c);
+          });
+        }
+        return {
+          like() {
+            stop(fill, ring, ...dots);
+            anim(ring, [{ transform: 'scale(.2)', opacity: 1, strokeWidth: 9 }, { transform: 'scale(1.45)', opacity: 1, strokeWidth: 0 }], { duration: 380, easing: 'cubic-bezier(.2,.6,.3,1)' });
+            anim(fill, [{ transform: 'scale(0)', opacity: 1 }, { transform: 'scale(1.25)', opacity: 1, offset: .55 }, { transform: 'scale(.94)', opacity: 1, offset: .8 }, { transform: 'scale(1)', opacity: 1 }], { duration: 520, delay: 140 });
+            dots.forEach((d) => {
+              const a = +d.dataset.a, r0 = 10, r1 = 22 + rand(-1.5, 1.5);
+              const p = (r) => `translate(${Math.cos(a) * r}px, ${Math.sin(a) * r}px)`;
+              anim(d, [
+                { transform: `${p(r0)} scale(.6)`, opacity: 1 },
+                { transform: `${p(r1 * .85)} scale(1)`, opacity: 1, offset: .45 },
+                { transform: `${p(r1)} scale(0)`, opacity: 1 },
+              ], { duration: 700, delay: 200, easing: 'cubic-bezier(.15,.7,.3,1)' });
+            });
+          },
+          unlike() {
+            stop(fill, ring, ...dots);
+            anim(fill, [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(.7)', opacity: 0 }], { duration: 220, easing: 'ease-in' });
+          },
+          reset(on) { stop(fill, ring, ...dots); fill.setAttribute('opacity', on ? 1 : 0); },
+        };
+      },
+    },
+    {
+      key: 'B', name: 'Наполнение', count: 128, tech: 'волна под clip-path + пузырьки',
+      desc: 'Сердце заполняется, как стакан: поднимается волна, внутри всплывают пузырьки. При отмене всё стекает вниз.',
+      build(hs) {
+        hs.innerHTML = `${gradient('gB')}<defs><clipPath id="clipB"><path d="${HEART}"/></clipPath></defs>
+          <g class="squish" clip-path="url(#clipB)"><g class="level" transform="translate(0 24)"><path class="wave" fill="url(#gB)"
+            d="M-24 0 q3 -2.2 6 0 t6 0 t6 0 t6 0 t6 0 t6 0 t6 0 t6 0 V30 H-24 Z"/></g>
+            <circle class="bub" cx="8" cy="22" r="1" fill="#fff" opacity="0"/><circle class="bub" cx="14.5" cy="22" r=".7" fill="#fff" opacity="0"/><circle class="bub" cx="11" cy="22" r=".55" fill="#fff" opacity="0"/></g>
+          <path class="outline" d="${HEART}"/>`;
+        const level = hs.querySelector('.level'), wave = hs.querySelector('.wave'), bubs = [...hs.querySelectorAll('.bub')];
+        const all = hs.querySelector('.squish');
+        level.removeAttribute('transform');
+        level.style.transform = 'translateY(24px)';
+        let waveAnim;
+        return {
+          like() {
+            stop(level, all, ...bubs); waveAnim?.cancel();
+            waveAnim = anim(wave, [{ transform: 'translateX(0)' }, { transform: 'translateX(12px)' }], { duration: 520, easing: 'linear', iterations: Infinity, fill: 'none' });
+            const rise = anim(level, [{ transform: 'translateY(24px)' }, { transform: 'translateY(-1.5px)' }], { duration: 900, easing: 'cubic-bezier(.35,.05,.25,1)' });
+            bubs.forEach((b, i) => anim(b, [{ transform: 'translateY(0)', opacity: 0 }, { transform: 'translateY(-4px)', opacity: .9, offset: .25 }, { transform: 'translateY(-15px)', opacity: 0 }], { duration: 900, delay: 160 + i * 140, easing: 'ease-out' }));
+            rise.finished.then(() => {
+              waveAnim?.cancel();
+              anim(all, [{ transform: 'scale(1)' }, { transform: 'scale(1.14, 1.08)', offset: .4 }, { transform: 'scale(1)' }], { duration: 360 });
+            }).catch(() => {});
+          },
+          unlike() {
+            stop(level, all, ...bubs); waveAnim?.cancel();
+            waveAnim = anim(wave, [{ transform: 'translateX(0)' }, { transform: 'translateX(12px)' }], { duration: 420, easing: 'linear', iterations: Infinity, fill: 'none' });
+            anim(level, [{ transform: 'translateY(-1.5px)' }, { transform: 'translateY(24px)' }], { duration: 460, easing: 'cubic-bezier(.5,0,.75,0)' })
+              .finished.then(() => waveAnim?.cancel()).catch(() => {});
+          },
+          reset(on) { stop(level, all, ...bubs); waveAnim?.cancel(); level.style.transform = on ? 'translateY(-1.5px)' : 'translateY(24px)'; },
+        };
+      },
+    },
+    {
+      key: 'C', name: 'Росчерк', count: 7, tech: 'stroke-dashoffset + искры',
+      desc: 'Контур обводится красной линией от руки, потом сердце заливается, мягко светится, и вокруг вспыхивают искры.',
+      build(hs, fx) {
+        hs.innerHTML = `${gradient('gC')}<defs><filter id="blurC" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+          <path class="glow" d="${HEART}" fill="#ff3b5c" filter="url(#blurC)" opacity="0"/>
+          <path class="outline" d="${HEART}"/>
+          <path class="fill" d="${HEART}" fill="url(#gC)" opacity="0"/>
+          <path class="trace" d="${HEART}" pathLength="1" fill="none" stroke="#ff3b5c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset="1"/>`;
+        const star = 'M0 -3.4 L.75 -.75 L3.4 0 L.75 .75 L0 3.4 L-.75 .75 L-3.4 0 L-.75 -.75Z';
+        const spots = [[-1.5, 2, '#ffb800', 1], [25.5, 0, '#ff5fa2', .8], [23, 23.5, '#ff7a45', .7], [1, 21, '#9b6bff', .6]];
+        fx.innerHTML = spots.map(([x, y, c]) => `<g transform="translate(${x} ${y})"><path class="star" d="${star}" fill="${c}" opacity="0"/></g>`).join('');
+        const glow = hs.querySelector('.glow'), fill = hs.querySelector('.fill'), trace = hs.querySelector('.trace'), stars = [...fx.querySelectorAll('.star')];
+        return {
+          like() {
+            stop(glow, fill, trace, ...stars);
+            anim(trace, [{ strokeDashoffset: 1, opacity: 1 }, { strokeDashoffset: 0, opacity: 1 }], { duration: 520, easing: 'cubic-bezier(.6,0,.3,1)' });
+            anim(fill, [{ transform: 'scale(.55)', opacity: 0 }, { transform: 'scale(1.12)', opacity: 1, offset: .6 }, { transform: 'scale(1)', opacity: 1 }], { duration: 380, delay: 460 });
+            anim(glow, [{ opacity: 0 }, { opacity: .55, offset: .35 }, { opacity: 0 }], { duration: 900, delay: 480, easing: 'ease-out' });
+            stars.forEach((s, i) => anim(s, [{ transform: 'scale(0) rotate(0deg)', opacity: 1 }, { transform: `scale(${spots[i][3] * 1.15}) rotate(45deg)`, opacity: 1, offset: .45 }, { transform: 'scale(0) rotate(90deg)', opacity: 1 }], { duration: 560, delay: 520 + i * 70 }));
+          },
+          unlike() {
+            stop(glow, fill, trace, ...stars);
+            anim(trace, [{ strokeDashoffset: 0, opacity: 1 }, { strokeDashoffset: -1, opacity: 1 }], { duration: 360, easing: 'cubic-bezier(.6,0,.4,1)' });
+            anim(fill, [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(.8)', opacity: 0 }], { duration: 200, easing: 'ease-in' });
+          },
+          reset(on) { stop(glow, fill, trace, ...stars); fill.setAttribute('opacity', on ? 1 : 0); trace.setAttribute('stroke-dashoffset', on ? 0 : 1); },
+        };
+      },
+    },
+    {
+      key: 'D', name: 'Рой', count: 64, tech: '8 мини-сердец, случайные траектории',
+      desc: 'Из кнопки взлетает стайка маленьких сердечек разного цвета и размера, каждое по своей траектории.',
+      build(hs, fx) {
+        hs.innerHTML = `${gradient('gD')}<path class="outline" d="${HEART}"/><path class="fill" d="${HEART}" fill="url(#gD)" opacity="0"/>`;
+        const fill = hs.querySelector('.fill');
+        return {
+          like() {
+            stop(fill);
+            anim(fill, [{ transform: 'scale(.3)', opacity: 0 }, { transform: 'scale(1.18)', opacity: 1, offset: .5 }, { transform: 'scale(1)', opacity: 1 }], { duration: 420 });
+            for (let i = 0; i < 8; i++) {
+              const g = svgEl('g', {}), p = svgEl('path', { d: HEART, fill: PALETTE[i % PALETTE.length] });
+              g.append(p); fx.append(g);
+              const s = rand(.28, .5), dx = rand(-16, 16), dy = rand(-30, -18), rot = rand(-35, 35), sway = rand(-5, 5);
+              anim(g, [
+                { transform: `translate(0px, 2px) scale(${s * .4}) rotate(0deg)`, opacity: 0 },
+                { transform: `translate(${dx * .35 + sway}px, ${dy * .35}px) scale(${s}) rotate(${rot * .4}deg)`, opacity: 1, offset: .3 },
+                { transform: `translate(${dx * .75 - sway}px, ${dy * .75}px) scale(${s}) rotate(${rot * .8}deg)`, opacity: .9, offset: .7 },
+                { transform: `translate(${dx}px, ${dy}px) scale(${s * .7}) rotate(${rot}deg)`, opacity: 0 },
+              ], { duration: rand(900, 1300), delay: i * 45, easing: 'cubic-bezier(.2,.6,.4,1)', fill: 'none' })
+                .finished.then(() => g.remove(), () => g.remove());
+            }
+          },
+          unlike() {
+            stop(fill);
+            anim(fill, [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(.75)', opacity: 0 }], { duration: 200, easing: 'ease-in' });
+          },
+          reset(on) { stop(fill); fill.setAttribute('opacity', on ? 1 : 0); },
+        };
+      },
+    },
+    {
+      key: 'E', name: 'Желе', count: 212, tech: 'пружина + сжатие и растяжение + блик',
+      desc: 'Сердце выпрыгивает на пружине, сжимается и тянется, как желе, а по нему пробегает блик.',
+      build(hs) {
+        hs.innerHTML = `${gradient('gE')}<defs><clipPath id="clipE"><path d="${HEART}"/></clipPath></defs>
+          <path class="outline" d="${HEART}"/>
+          <g class="body" opacity="0"><path d="${HEART}" fill="url(#gE)"/>
+            <g clip-path="url(#clipE)"><g class="shine"><ellipse cx="12" cy="12" rx="2.6" ry="16" fill="#fff" opacity=".6" transform="rotate(28 12 12)"/></g></g></g>`;
+        const body = hs.querySelector('.body'), shine = hs.querySelector('.shine');
+        return {
+          like() {
+            stop(body, shine);
+            const { xs, vs, duration } = spring(0, 1, { stiffness: 340, damping: 11 });
+            const vmax = Math.max(...vs.map(Math.abs)) || 1;
+            const frames = xs.map((s, i) => {
+              const k = Math.max(-1, Math.min(1, vs[i] / vmax)) * .22;
+              const sx = Math.max(0, s * (1 - k)), sy = Math.max(0, s * (1 + k));
+              return { transform: `scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`, opacity: 1 };
+            });
+            anim(body, frames, { duration, easing: 'linear' });
+            anim(shine, [{ transform: 'translateX(-14px)' }, { transform: 'translateX(16px)' }], { duration: 650, delay: 260, easing: 'cubic-bezier(.4,0,.2,1)' });
+          },
+          unlike() {
+            stop(body, shine);
+            anim(body, [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(1.12, .82)', opacity: 1, offset: .35 }, { transform: 'scale(0)', opacity: 0 }], { duration: 300, easing: 'ease-in' });
+          },
+          reset(on) { stop(body, shine); body.setAttribute('opacity', on ? 1 : 0); shine.style.transform = 'translateX(-14px)'; },
+        };
+      },
+    },
+    {
+      key: 'F', name: 'Пульс', count: 19, tech: 'двойной удар + две волны',
+      desc: 'Сердце бьётся два раза, как настоящее, и от него расходятся две мягкие волны.',
+      build(hs, fx) {
+        hs.innerHTML = `${gradient('gF')}<path class="outline" d="${HEART}"/><path class="fill" d="${HEART}" fill="url(#gF)" opacity="0"/>`;
+        fx.innerHTML = `<path class="wave1" d="${HEART}" fill="none" stroke="#ff3b5c" stroke-width="1.1" opacity="0"/><path class="wave2" d="${HEART}" fill="none" stroke="#ff5fa2" stroke-width=".9" opacity="0"/>`;
+        const fill = hs.querySelector('.fill'), w1 = fx.querySelector('.wave1'), w2 = fx.querySelector('.wave2');
+        return {
+          like() {
+            stop(fill, w1, w2);
+            anim(fill, [
+              { transform: 'scale(0)', opacity: 1 }, { transform: 'scale(1.28)', opacity: 1, offset: .22 },
+              { transform: 'scale(.92)', opacity: 1, offset: .42 }, { transform: 'scale(1.16)', opacity: 1, offset: .6 },
+              { transform: 'scale(1)', opacity: 1 },
+            ], { duration: 820, easing: 'cubic-bezier(.3,.7,.4,1)' });
+            anim(w1, [{ transform: 'scale(1)', opacity: .8 }, { transform: 'scale(2.3)', opacity: 0 }], { duration: 700, delay: 120, easing: 'cubic-bezier(.2,.6,.3,1)' });
+            anim(w2, [{ transform: 'scale(1)', opacity: .7 }, { transform: 'scale(2.6)', opacity: 0 }], { duration: 760, delay: 420, easing: 'cubic-bezier(.2,.6,.3,1)' });
+          },
+          unlike() {
+            stop(fill, w1, w2);
+            anim(fill, [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(.6)', opacity: 0 }], { duration: 220, easing: 'ease-in' });
+          },
+          reset(on) { stop(fill, w1, w2); fill.setAttribute('opacity', on ? 1 : 0); },
+        };
+      },
+    },
+  ];
+
+  /* ---------- swarm toolkit: simulate each heart, then play it as transform keyframes ---------- */
+  const SWARM_GRADS = [['#ff5fa2', '#ff3b5c'], ['#ff7a45', '#ff3b8a'], ['#b07bff', '#ff5fa2'], ['#ff3b5c', '#ff9a3d'], ['#ffc2d4', '#ff6b8f']];
+  const swarmDefs = (p) => '<defs>' + SWARM_GRADS.map(([a, b], i) =>
+    `<linearGradient id="${p}${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`).join('') + '</defs>';
+  function miniHeart(fx, paint, outline = false) {
+    const g = svgEl('g', {});
+    g.append(svgEl('path', outline
+      ? { d: HEART, fill: 'none', stroke: paint, 'stroke-width': 2.6, 'stroke-linejoin': 'round' }
+      : { d: HEART, fill: paint }));
+    fx.append(g);
+    return g;
+  }
+  // x, y = centre of the heart in fx units; the path's own centre is (12, 12.1)
+  const toFrames = (states) => states.map((s) => ({
+    transform: `translate(${(s.x - 12).toFixed(2)}px, ${(s.y - 12.1).toFixed(2)}px) rotate(${s.r.toFixed(1)}deg) scale(${s.sx.toFixed(3)}, ${s.sy.toFixed(3)})`,
+    opacity: +Math.max(0, Math.min(1, s.o)).toFixed(3),
+  }));
+  function fly(el, states, ms, delay) {
+    anim(el, toFrames(states), { duration: ms, delay, easing: 'linear' })
+      .finished.then(() => el.remove(), () => el.remove());
+  }
+  // 0 → 1 with a small overshoot over `len` seconds
+  const popIn = (t, len = .22) => {
+    if (t >= len) return 1;
+    const k = t / len;
+    return Math.sin(k * Math.PI / 2) * (1 + .25 * Math.sin(k * Math.PI));
+  };
+  const fadeOut = (t, T, from) => (t < T * from ? 1 : Math.max(0, 1 - (t - T * from) / (T * (1 - from))));
+  const STEP = 1 / 30;
+
+  // floats up like a balloon: buoyancy, air drag, growing sway, tilt that follows the sway, flutter
+  function simBalloon(T) {
+    let x = 12 + rand(-3, 3), y = 12.5, vx = rand(-34, 34), vy = rand(-92, -62);
+    const A = rand(3.5, 8), f = rand(.8, 1.4), ph = rand(0, 6.28), size = rand(.32, .64), depth = rand(.55, 1);
+    const out = [];
+    for (let t = 0; t <= T + 1e-6; t += STEP) {
+      vx *= 1 - 1.8 * STEP; vy += -14 * STEP; vy *= 1 - .9 * STEP;
+      x += vx * STEP; y += vy * STEP;
+      const grow = Math.min(1, t * 2), w = 6.283 * f * t + ph;
+      const flutter = 1 + .07 * Math.sin(6.283 * 3.2 * t + ph);
+      const s = size * popIn(t) * (.8 + .2 * fadeOut(t, T, .7));
+      out.push({ x: x + A * Math.sin(w) * grow, y, r: 16 * Math.cos(w) * grow, sx: s * flutter, sy: s / flutter, o: depth * Math.min(1, t / .08) * fadeOut(t, T, .6) });
+    }
+    return out;
+  }
+  // shoots up, tumbles and falls back under gravity
+  function simFountain(T, tiny) {
+    let x = 12 + rand(-2, 2), y = 11, vx = rand(-68, 68), vy = rand(-165, -125), r = rand(-20, 20);
+    const spin = vx * 5 + rand(-70, 70), size = tiny ? rand(.13, .2) : rand(.3, .52);
+    const out = [];
+    for (let t = 0; t <= T + 1e-6; t += STEP) {
+      vy += 240 * STEP; vx *= 1 - .5 * STEP; vy *= 1 - .3 * STEP;
+      x += vx * STEP; y += vy * STEP; r += spin * STEP;
+      const s = size * popIn(t, .12);
+      out.push({ x, y, r, sx: s, sy: s, o: Math.min(1, t / .05) * fadeOut(t, T, .55) });
+    }
+    return out;
+  }
+  // bursts out in every direction, brakes hard, then drifts up and twinkles
+  function simFirework(T, i, n) {
+    const a = (i / n) * 6.283 + rand(-.25, .25), sp = rand(125, 175);
+    let x = 12, y = 12.1, vx = Math.cos(a) * sp, vy = Math.sin(a) * sp * .85;
+    const size = rand(.26, .46), ph = rand(0, 6.28), tilt = rand(-14, 14);
+    const out = [];
+    for (let t = 0; t <= T + 1e-6; t += STEP) {
+      vx *= 1 - 4.2 * STEP; vy *= 1 - 4.2 * STEP; vy += -18 * STEP;
+      x += vx * STEP; y += vy * STEP;
+      const tw = t > .32 ? Math.sin(6.283 * 4.5 * t + ph) : 0;
+      const s = size * popIn(t, .18) * (1 + .1 * tw);
+      out.push({ x, y, r: tilt * Math.min(1, t * 3), sx: s, sy: s, o: (.78 + .22 * tw) * Math.min(1, t / .06) * fadeOut(t, T, .62) });
+    }
+    return out;
+  }
+
+  // the main heart jumps out on a spring and squashes a little
+  function popMain(el) {
+    const { xs, vs, duration } = spring(0, 1, { stiffness: 340, damping: 12 });
+    const vmax = Math.max(...vs.map(Math.abs)) || 1;
+    anim(el, xs.map((s, i) => {
+      const k = Math.max(-1, Math.min(1, vs[i] / vmax)) * .2;
+      return { transform: `scale(${Math.max(0, s * (1 - k)).toFixed(3)}, ${Math.max(0, s * (1 + k)).toFixed(3)})`, opacity: 1 };
+    }), { duration, easing: 'linear' });
+  }
+  function unpopMain(el) {
+    anim(el, [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(1.1, .85)', opacity: 1, offset: .3 }, { transform: 'scale(.5)', opacity: 0 }], { duration: 260, easing: 'ease-in' });
+  }
+  // on unlike a small grey heart falls down
+  function sadDrop(fx) {
+    const g = miniHeart(fx, '#b9bcc4');
+    anim(g, [
+      { transform: 'translate(0px, 0px) rotate(0deg) scale(.4)', opacity: .95 },
+      { transform: 'translate(1px, 5px) rotate(8deg) scale(.36)', opacity: .9, offset: .35 },
+      { transform: 'translate(3px, 18px) rotate(26deg) scale(.3)', opacity: 0 },
+    ], { duration: 700, easing: 'cubic-bezier(.45,0,.8,.6)' }).finished.then(() => g.remove(), () => g.remove());
+  }
+  function swarmVariant({ key, name, count, tech, desc, burst }) {
+    return {
+      key, name, count, tech, desc,
+      build(hs, fx) {
+        const gid = `g${key}`, pid = `p${key}-`;
+        hs.innerHTML = `${gradient(gid)}<path class="outline" d="${HEART}"/><path class="fill" d="${HEART}" fill="url(#${gid})" opacity="0"/>`;
+        fx.innerHTML = swarmDefs(pid);
+        const fill = hs.querySelector('.fill');
+        return {
+          like() { stop(fill); popMain(fill); burst(fx, pid); },
+          unlike() { stop(fill); unpopMain(fill); sadDrop(fx); },
+          reset(on) { stop(fill); fill.setAttribute('opacity', on ? 1 : 0); },
+        };
+      },
+    };
+  }
+
+  const SWARM = [
+    swarmVariant({
+      key: 'D1', name: 'Шарики', count: 64, tech: 'всплытие, покачивание, глубина',
+      desc: 'Сердечки всплывают, как воздушные шарики: раскачиваются, наклоняются за движением и трепещут. Дальние меньше и прозрачнее.',
+      burst(fx, pid) {
+        for (let i = 0; i < 11; i++) {
+          const T = rand(1.4, 1.9);
+          fly(miniHeart(fx, `url(#${pid}${i % 5})`, i % 4 === 3), simBalloon(T), T * 1000, i * 36 + rand(0, 40));
+        }
+      },
+    }),
+    swarmVariant({
+      key: 'D2', name: 'Фонтан', count: 97, tech: 'гравитация, вращение, крошки',
+      desc: 'Сердечки бьют вверх фонтаном, кувыркаются и падают обратно. Между ними сыплются совсем крошечные.',
+      burst(fx, pid) {
+        for (let i = 0; i < 16; i++) {
+          const tiny = i >= 10, T = rand(1.05, 1.35);
+          fly(miniHeart(fx, `url(#${pid}${i % 5})`, !tiny && i % 5 === 4), simFountain(T, tiny), T * 1000, i * 18);
+        }
+      },
+    }),
+    swarmVariant({
+      key: 'D3', name: 'Салют', count: 33, tech: 'разлёт, торможение, мерцание, искры',
+      desc: 'Вспышка, сердечки разлетаются во все стороны, резко тормозят, а потом медленно всплывают и мерцают. Между ними загораются искры.',
+      burst(fx, pid) {
+        const ring = svgEl('circle', { cx: 12, cy: 12.5, r: 10, fill: 'none', stroke: `url(#${pid}0)`, 'stroke-width': 2 });
+        fx.append(ring);
+        anim(ring, [{ transform: 'scale(.3)', opacity: .9 }, { transform: 'scale(2.4)', opacity: 0 }], { duration: 520, easing: 'cubic-bezier(.2,.6,.3,1)' })
+          .finished.then(() => ring.remove(), () => ring.remove());
+        const n = 12;
+        for (let i = 0; i < n; i++) {
+          const T = rand(1.5, 1.9);
+          fly(miniHeart(fx, `url(#${pid}${i % 5})`, i % 6 === 5), simFirework(T, i, n), T * 1000, rand(0, 50));
+        }
+        const star = 'M0 -3.4 L.75 -.75 L3.4 0 L.75 .75 L0 3.4 L-.75 .75 L-3.4 0 L-.75 -.75Z';
+        for (let i = 0; i < 5; i++) {
+          const a = rand(0, 6.283), d = rand(20, 34);
+          const g = svgEl('g', { transform: `translate(${(12 + Math.cos(a) * d).toFixed(1)} ${(12.5 + Math.sin(a) * d * .85).toFixed(1)})` });
+          const s = svgEl('path', { d: star, fill: ['#ffb800', '#ff5fa2', '#b07bff', '#ff7a45', '#ffd0de'][i] });
+          g.append(s); fx.append(g);
+          anim(s, [{ transform: 'scale(0) rotate(0deg)', opacity: 1 }, { transform: `scale(${rand(.7, 1.1).toFixed(2)}) rotate(45deg)`, opacity: 1, offset: .4 }, { transform: 'scale(0) rotate(90deg)', opacity: 1 }],
+            { duration: 620, delay: 260 + i * 110 }).finished.then(() => g.remove(), () => g.remove());
+        }
+      },
+    }),
+  ];
+
+  /* ---------- counter roll ---------- */
+  function setCount(btn, n, dir) {
+    const box = btn.querySelector('.count');
+    while (box.children.length > 1) box.firstElementChild.remove();
+    const old = box.firstElementChild, nu = document.createElement('span');
+    nu.textContent = n; box.append(nu);
+    const out = dir > 0 ? '-100%' : '100%', from = dir > 0 ? '100%' : '-100%';
+    anim(old, [{ transform: 'translateY(0)', opacity: 1 }, { transform: `translateY(${out})`, opacity: 0 }], { duration: 240, easing: 'cubic-bezier(.4,0,.6,1)' })
+      .finished.then(() => old.remove(), () => old.remove());
+    anim(nu, [{ transform: `translateY(${from})`, opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 380, delay: 70, easing: 'cubic-bezier(.2,.9,.3,1.25)' });
+  }
+
+  /* ---------- render cards ---------- */
+  const apis = [];
+  function renderInto(grid, list, likedExample) {
+  list.forEach((v, idx) => {
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="stage">
+        <button type="button" class="like" id="like-${v.key}" aria-pressed="false" aria-label="Нравится, вариант ${v.name}">
+          <span class="icon"><svg class="fx" viewBox="-24 -24 72 72" aria-hidden="true"></svg><svg class="hs" viewBox="0 0 24 24" aria-hidden="true"></svg></span>
+          <span class="count"><span>${v.count}</span></span>
+        </button>
+        <button type="button" class="replay" id="replay-${v.key}">Повторить</button>
+      </div>
+      <div class="meta">
+        <h2><span>${v.key}</span>${v.name}</h2>
+        <p>${v.desc}</p>
+        <div class="tech">${v.tech}</div>
+      </div>`;
+    grid.append(card);
+    const btn = card.querySelector('.like');
+    const api = v.build(card.querySelector('.hs'), card.querySelector('.fx'));
+    const state = { on: false, n: v.count };
+    const toggle = () => {
+      state.on = !state.on;
+      state.n += state.on ? 1 : -1;
+      btn.setAttribute('aria-pressed', String(state.on));
+      state.on ? api.like() : api.unlike();
+      setCount(btn, state.n, state.on ? 1 : -1);
+    };
+    btn.addEventListener('click', toggle);
+    card.querySelector('.replay').addEventListener('click', () => {
+      if (state.on) { state.on = false; state.n -= 1; btn.setAttribute('aria-pressed', 'false'); api.reset(false); btn.querySelector('.count').innerHTML = `<span>${state.n}</span>`; }
+      toggle();
+    });
+    apis.push({ api, btn, state });
+    // show one liked example at rest so the finished state is visible without clicking
+    if (likedExample && idx === 0) { state.on = true; state.n += 1; btn.setAttribute('aria-pressed', 'true'); api.reset(true); btn.querySelector('.count').innerHTML = `<span>${state.n}</span>`; }
+  });
+  }
+  renderInto(document.getElementById('grid-swarm'), SWARM, true);
+  renderInto(document.getElementById('grid'), VARIANTS, false);
+
+  /* ---------- speed switch ---------- */
+  document.querySelectorAll('.speed button').forEach((b) => b.addEventListener('click', () => {
+    slow = +b.dataset.speed;
+    document.querySelectorAll('.speed button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+})();
+</script>
