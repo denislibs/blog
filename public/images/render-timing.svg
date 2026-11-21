@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 372" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" role="img" aria-label="Веб-фреймворк меняет DOM сразу после setState, нативный тулкит ждёт сигнала экрана">
+  <rect width="760" height="372" fill="#ffffff"/>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8a8d95"/></marker>
+  </defs>
+
+  <text x="24" y="30" font-size="15" font-weight="600" fill="#111214">Когда фреймворк меняет то, что на экране</text>
+
+  <!-- сигналы экрана -->
+  <g stroke="#c9ccd3" stroke-width="1" stroke-dasharray="3 4">
+    <path d="M44 48V340"/>
+    <path d="M424 48V340"/>
+  </g>
+  <g font-size="11" fill="#8a8d95" text-anchor="middle">
+    <text x="44" y="358">vsync</text>
+    <text x="424" y="358">vsync</text>
+    <text x="234" y="358">один кадр: 16,7 мс при 60 Гц, 8,3 мс при 120 Гц</text>
+  </g>
+
+  <!-- веб -->
+  <text x="56" y="72" font-size="13" font-weight="600" fill="#111214">Веб: React, Vue, Svelte, Solid</text>
+  <path d="M44 112H740" stroke="#e8e9ec" stroke-width="1"/>
+  <circle cx="72" cy="112" r="5" fill="#111214"/>
+  <text x="72" y="154" text-anchor="middle" fill="#43464d" font-size="11">клик, setState</text>
+
+  <rect x="100" y="90" width="130" height="44" rx="8" fill="#2b55c9" fill-opacity=".12" stroke="#2b55c9"/>
+  <text x="165" y="109" text-anchor="middle" fill="#111214" font-weight="600">рендер</text>
+  <text x="165" y="125" text-anchor="middle" fill="#43464d" font-size="11">DOM меняется сразу</text>
+
+  <rect x="240" y="90" width="160" height="44" rx="8" fill="#e5484d" fill-opacity=".12" stroke="#e5484d"/>
+  <text x="320" y="109" text-anchor="middle" fill="#111214" font-weight="600">чтение размеров</text>
+  <text x="320" y="125" text-anchor="middle" fill="#43464d" font-size="11">reflow посреди кода</text>
+
+  <rect x="432" y="90" width="176" height="44" rx="8" fill="#8a8d95" fill-opacity=".12" stroke="#8a8d95"/>
+  <text x="520" y="109" text-anchor="middle" fill="#111214" font-weight="600">браузер рисует кадр</text>
+  <text x="520" y="125" text-anchor="middle" fill="#43464d" font-size="11">стили, вёрстка, отрисовка</text>
+
+  <text x="56" y="180" fill="#6c6f78" font-size="11.5">Фреймворк применяет изменения, как только может. Кадр рисует браузер, и фреймворк о нём не знает.</text>
+
+  <!-- натив -->
+  <text x="56" y="222" font-size="13" font-weight="600" fill="#111214">Натив: Flutter, SwiftUI, UIKit, Jetpack Compose</text>
+  <path d="M44 262H740" stroke="#e8e9ec" stroke-width="1"/>
+  <circle cx="72" cy="262" r="5" fill="#111214"/>
+  <text x="72" y="304" text-anchor="middle" fill="#43464d" font-size="11">клик, setState</text>
+
+  <rect x="100" y="240" width="110" height="44" rx="8" fill="#2f9e5b" fill-opacity=".12" stroke="#2f9e5b"/>
+  <text x="155" y="259" text-anchor="middle" fill="#111214" font-weight="600">пометить</text>
+  <text x="155" y="275" text-anchor="middle" fill="#43464d" font-size="11">дёшево и быстро</text>
+
+  <path d="M218 262H414" stroke="#8a8d95" stroke-width="1.25" stroke-dasharray="4 4" fill="none" marker-end="url(#a)"/>
+  <text x="316" y="252" text-anchor="middle" fill="#6c6f78" font-size="11">ждём сигнала экрана</text>
+
+  <rect x="432" y="240" width="176" height="44" rx="8" fill="#2f9e5b" fill-opacity=".12" stroke="#2f9e5b"/>
+  <text x="520" y="259" text-anchor="middle" fill="#111214" font-weight="600">build, layout, paint</text>
+  <text x="520" y="275" text-anchor="middle" fill="#43464d" font-size="11">всё помеченное разом</text>
+
+  <rect x="616" y="240" width="124" height="44" rx="8" fill="#d9822b" fill-opacity=".12" stroke="#d9822b"/>
+  <text x="678" y="259" text-anchor="middle" fill="#111214" font-weight="600">растеризация</text>
+  <text x="678" y="275" text-anchor="middle" fill="#43464d" font-size="11">в другом потоке</text>
+
+  <text x="56" y="330" fill="#6c6f78" font-size="11.5">Изменения только помечаются. Вся работа идёт по сигналу экрана, и каждый этап выполняется один раз за кадр.</text>
+</svg>
