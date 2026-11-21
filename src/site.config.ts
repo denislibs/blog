@@ -8,8 +8,8 @@ export const SITE = {
     surname: 'Фамилия',
     role: 'Frontend-разработчик',
     bio: 'Пишу про производительность интерфейсов, React, базы данных и инструменты, которые экономят время.',
-    // Положи своё фото в public/ (например avatar.jpg) и поменяй путь
-    avatar: '/avatar.svg',
+    // Квадратное фото в public/, на сайте обрезается в круг
+    avatar: '/avatar.jpg',
   },
   links: [
     { label: 'GitHub', href: 'https://github.com/' },
