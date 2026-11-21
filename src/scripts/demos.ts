@@ -10,7 +10,60 @@ onPage((signal) => {
   document.querySelectorAll<HTMLElement>('[data-demo="transition"]').forEach((el) => transitionDemo(el));
   document.querySelectorAll<HTMLElement>('[data-demo="loop-sim"]').forEach((el) => loopSim(el));
   document.querySelectorAll<HTMLElement>('[data-demo="click-order"]').forEach((el) => clickOrder(el));
+  document.querySelectorAll<HTMLElement>('[data-demo="render-chain"]').forEach((el) => renderChain(el, signal));
 });
+
+/* ---------- цепочка эффектов против одного обработчика ---------- */
+function renderChain(root: HTMLElement, signal: AbortSignal) {
+  type Step = { text: string; kind: 'event' | 'render' | 'effect' | 'done' };
+  const chain: Step[] = [
+    { text: 'Клик: setCard(новая карта)', kind: 'event' },
+    { text: 'Рендер 1: карта новая, счётчик золотых ещё старый', kind: 'render' },
+    { text: 'useEffect: карта золотая → setGoldCardCount', kind: 'effect' },
+    { text: 'Рендер 2: счётчик новый, раунд ещё старый', kind: 'render' },
+    { text: 'useEffect: золотых уже 3 → setRound', kind: 'effect' },
+    { text: 'Рендер 3: раунд новый, игра ещё не окончена', kind: 'render' },
+    { text: 'useEffect: раунд больше 5 → setIsGameOver', kind: 'effect' },
+    { text: 'Рендер 4: наконец всё согласовано', kind: 'done' },
+  ];
+  const handler: Step[] = [
+    { text: 'Клик: обработчик сразу считает карту, золотые, раунд и конец игры', kind: 'event' },
+    { text: 'Рендер 1: всё согласовано', kind: 'done' },
+  ];
+  root.className = 'demo';
+  root.innerHTML = `
+    <div class="rc-top"><button type="button" class="demo-btn primary rc-go">▶ Положить карту</button></div>
+    <div class="rc-grid">
+      ${['Цепочка эффектов', 'Всё в обработчике']
+        .map((t, i) => `<div class="rc-col"><div class="rc-head"><b>${t}</b><span class="rc-count" data-col="${i}">рендеров: 0</span></div><ol class="run-out rc-list" data-col="${i}"><li class="placeholder">Нажми кнопку</li></ol></div>`)
+        .join('')}
+    </div>`;
+  const timers: number[] = [];
+  signal.addEventListener('abort', () => timers.forEach(clearTimeout));
+  const playCol = (col: number, steps: Step[]) => {
+    const list = root.querySelector<HTMLElement>(`.rc-list[data-col="${col}"]`)!;
+    const count = root.querySelector<HTMLElement>(`.rc-count[data-col="${col}"]`)!;
+    list.replaceChildren();
+    let renders = 0;
+    count.textContent = 'рендеров: 0';
+    steps.forEach((s, i) =>
+      timers.push(
+        window.setTimeout(() => {
+          const li = document.createElement('li');
+          li.className = `rc-${s.kind}`;
+          li.textContent = s.text;
+          list.append(li);
+          if (s.kind === 'render' || s.kind === 'done') count.textContent = `рендеров: ${++renders}`;
+        }, i * 450),
+      ),
+    );
+  };
+  root.querySelector('.rc-go')!.addEventListener('click', () => {
+    timers.splice(0).forEach(clearTimeout);
+    playCol(0, chain);
+    playCol(1, handler);
+  });
+}
 
 /* ---------- занять главный поток ---------- */
 function blockDemo(root: HTMLElement, signal: AbortSignal) {

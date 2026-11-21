@@ -1,0 +1,299 @@
+<title>Варианты оглавления</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Source+Serif+4:opsz,wght@8..60,500&display=swap">
+<style>
+/* Layout: a long blog post in the blog's own look; five ways to show its table of contents, switched from the top.
+   None of them covers the text unless the reader explicitly opens it. */
+:root {
+  --bg: #ffffff; --fg: #111214; --text: #43464d; --muted: #8a8d95; --line: #e8e9ec; --soft: #f2f3f5; --accent: #2b55c9;
+  --shadow: 0 18px 44px -22px rgba(17, 18, 20, .4);
+  --f-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0b0b0c; --fg: #ededee; --text: #a3a5ab; --muted: #73757c; --line: #1f2023; --soft: #1b1c1f; --accent: #9fb2e6; --shadow: 0 18px 44px -18px rgba(0, 0, 0, .75); color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0b0b0c; --fg: #ededee; --text: #a3a5ab; --muted: #73757c; --line: #1f2023; --soft: #1b1c1f; --accent: #9fb2e6; --shadow: 0 18px 44px -18px rgba(0, 0, 0, .75); color-scheme: dark; }
+*, *::before, *::after { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); -webkit-font-smoothing: antialiased; }
+h1, h2, p { margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+.wrap { max-width: 680px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* переключатель вариантов */
+.picker { padding-block: 28px 8px; display: grid; gap: 12px; }
+.picker h1 { font: 500 28px/1.15 var(--f-serif); letter-spacing: -.02em; }
+.picker p { font: 14px/1.55 var(--f-body); color: var(--text); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 14px; background: var(--soft); }
+.seg button { border: 0; background: none; cursor: pointer; padding: 8px 12px; border-radius: 11px; font: 500 13px var(--f-body); color: var(--muted); text-align: left; }
+.seg button[aria-pressed="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.vnote { font: 13.5px/1.55 var(--f-body); color: var(--muted); min-height: 3em; }
+
+/* статья */
+article { padding-block: 24px 160px; }
+article h1 { font: 500 clamp(32px, 5vw, 46px)/1.08 var(--f-serif); letter-spacing: -.025em; text-wrap: balance; }
+.meta { margin-top: 14px; font: 13px var(--f-body); color: var(--muted); }
+article h2 { margin-top: 2em; font: 500 26px/1.25 var(--f-serif); letter-spacing: -.01em; scroll-margin-top: 80px; }
+article p { margin-top: 1em; font: 18px/1.72 var(--f-body); color: var(--text); }
+
+/* ---------- 1. штрихи с подписью ---------- */
+.v-rail { position: fixed; top: 50%; transform: translateY(-50%); left: calc(50% + 340px + 32px); display: none; gap: 9px; z-index: 5; }
+[data-v="rail"] .v-rail { display: grid; }
+.v-rail a { position: relative; display: block; width: 26px; height: 10px; }
+.v-rail a::before { content: ""; position: absolute; right: 0; top: 4px; width: 14px; height: 2px; border-radius: 2px; background: var(--line); transition: width .3s var(--ease), background-color .3s; }
+.v-rail a.on::before { width: 24px; background: var(--fg); }
+.v-rail a:hover::before { background: var(--muted); width: 22px; }
+.v-rail a span {
+  position: absolute; left: 34px; top: 50%; transform: translate(-6px, -50%); width: max-content; max-width: 240px; pointer-events: none;
+  font: 500 12.5px var(--f-body); color: var(--fg); background: var(--bg); padding: 4px 9px; border-radius: 8px; border: 1px solid var(--line);
+  opacity: 0; transition: opacity .18s, transform .25s var(--ease);
+}
+.v-rail a:hover span, .v-rail a:focus-visible span { opacity: 1; transform: translate(0, -50%); }
+
+/* ---------- 2. строка сверху ---------- */
+.v-bar {
+  position: fixed; inset: 0 0 auto; z-index: 20; display: none;
+  padding-top: env(safe-area-inset-top, 0px); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line); transform: translateY(-100%); transition: transform .35s var(--ease);
+}
+[data-v="bar"] .v-bar { display: block; }
+.v-bar.show { transform: none; }
+.v-bar .wrap { display: flex; align-items: center; gap: 12px; height: 48px; }
+.v-bar .cur { flex: 1; min-width: 0; font: 500 14px var(--f-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v-bar .cur small { color: var(--muted); font: 500 12px var(--f-mono); margin-right: 8px; }
+.v-bar .open { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 6px 12px; cursor: pointer; font: 500 13px var(--f-body); }
+.v-bar .prog { position: absolute; left: 0; bottom: -1px; height: 2px; width: 100%; background: var(--fg); transform-origin: 0 50%; transform: scaleX(0); }
+.v-bar .drop { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg); border-bottom: 1px solid var(--line); box-shadow: var(--shadow); display: none; }
+.v-bar.opened .drop { display: block; animation: drop .3s var(--ease); }
+@keyframes drop { from { opacity: 0; transform: translateY(-8px); } }
+.v-bar .drop .wrap { display: grid; gap: 2px; height: auto; padding-block: 10px 16px; max-height: 60vh; overflow: auto; }
+
+/* ---------- 3. пилюля снизу ---------- */
+.v-pill { display: none; }
+[data-v="pill"] .v-pill { display: block; }
+.v-pill .pill {
+  position: fixed; z-index: 20; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px; max-width: min(480px, calc(100vw - 32px));
+  padding: 8px 14px 8px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); box-shadow: var(--shadow); cursor: pointer;
+}
+.v-pill .ring { width: 26px; height: 26px; flex: none; }
+.v-pill .ring circle { fill: none; stroke-width: 3; }
+.v-pill .ring .bgc { stroke: var(--line); }
+.v-pill .ring .fgc { stroke: var(--fg); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
+.v-pill .cur { min-width: 0; font: 500 13.5px var(--f-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v-pill .cur small { color: var(--muted); font: 500 12px var(--f-mono); margin-left: 6px; }
+.v-pill .sheet {
+  position: fixed; z-index: 21; left: 50%; bottom: calc(72px + env(safe-area-inset-bottom, 0px)); width: min(480px, calc(100vw - 32px));
+  transform: translate(-50%, 12px); opacity: 0; visibility: hidden; padding: 10px; border-radius: 18px;
+  background: var(--bg); border: 1px solid var(--line); box-shadow: var(--shadow); max-height: 60vh; overflow: auto;
+  transition: opacity .2s, transform .3s var(--ease), visibility 0s .3s;
+}
+.v-pill.opened .sheet { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity .2s, transform .3s var(--ease); }
+
+/* ---------- 4. в левом поле ---------- */
+.v-margin { position: fixed; top: 120px; left: calc(50% - 340px - 56px - 210px); width: 210px; display: none; gap: 1px; z-index: 5; transition: opacity .4s; }
+[data-v="margin"] .v-margin { display: grid; }
+.v-margin.dim { opacity: .35; }
+.v-margin:hover { opacity: 1; }
+.v-margin b { font: 500 11px var(--f-body); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+
+/* ---------- 5. в начале статьи ---------- */
+.v-inline { display: none; margin-top: 26px; border: 1px solid var(--line); border-radius: 14px; }
+[data-v="inline"] .v-inline { display: block; }
+.v-inline summary { cursor: pointer; list-style: none; padding: 12px 16px; font: 600 14px var(--f-body); display: flex; justify-content: space-between; }
+.v-inline summary::-webkit-details-marker { display: none; }
+.v-inline summary::after { content: "+"; color: var(--muted); font-weight: 500; transition: transform .3s var(--ease); }
+.v-inline[open] summary::after { transform: rotate(45deg); }
+.v-inline .list { padding: 0 16px 14px; columns: 2; column-gap: 24px; }
+.v-up {
+  position: fixed; z-index: 20; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  display: none; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 8px 14px; cursor: pointer;
+  font: 500 13px var(--f-body); box-shadow: var(--shadow); opacity: 0; transform: translateY(10px); transition: opacity .25s, transform .3s var(--ease);
+}
+[data-v="inline"] .v-up { display: block; }
+.v-up.show { opacity: 1; transform: none; }
+
+/* общий вид ссылок в списках */
+.toc-link { display: block; padding: 6px 10px; border-radius: 8px; text-decoration: none; color: var(--muted); font: 13.5px/1.4 var(--f-body); transition: color .2s, background-color .2s; break-inside: avoid; }
+.toc-link:hover { color: var(--fg); background: var(--soft); }
+.toc-link.on { color: var(--fg); background: var(--soft); font-weight: 500; }
+.v-margin .toc-link { padding: 4px 0; background: none !important; border-radius: 0; }
+
+@media (max-width: 1239px) { .v-rail, .v-margin { display: none !important; } .need-wide { display: inline; } }
+.need-wide { display: none; color: #d9822b; }
+@media (max-width: 560px) { .v-inline .list { columns: 1; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+</style>
+
+<div class="wrap picker">
+  <h1>Варианты оглавления</h1>
+  <p>Пять способов показать содержание длинного поста, и ни один не закрывает текст сам по себе. Переключай и прокручивай статью ниже.</p>
+  <div class="seg" id="seg" role="group" aria-label="Вариант оглавления">
+    <button type="button" id="v-rail" data-v="rail" aria-pressed="true">1. Штрихи с подписью</button>
+    <button type="button" id="v-bar" data-v="bar" aria-pressed="false">2. Строка сверху</button>
+    <button type="button" id="v-pill" data-v="pill" aria-pressed="false">3. Пилюля снизу</button>
+    <button type="button" id="v-margin" data-v="margin" aria-pressed="false">4. В левом поле</button>
+    <button type="button" id="v-inline" data-v="inline" aria-pressed="false">5. В начале статьи</button>
+  </div>
+  <p class="vnote" id="vnote"></p>
+</div>
+
+<!-- 1 -->
+<nav class="v-rail" id="rail" aria-label="Содержание"></nav>
+<!-- 2 -->
+<div class="v-bar" id="bar">
+  <div class="wrap"><span class="cur" id="bar-cur"></span><button type="button" class="open" id="bar-open" aria-expanded="false">Содержание</button></div>
+  <span class="prog" id="bar-prog"></span>
+  <nav class="drop" aria-label="Содержание"><div class="wrap" id="bar-list"></div></nav>
+</div>
+<!-- 3 -->
+<div class="v-pill" id="pill">
+  <nav class="sheet" id="pill-sheet" aria-label="Содержание"></nav>
+  <button type="button" class="pill" id="pill-btn" aria-expanded="false">
+    <svg class="ring" viewBox="0 0 26 26" aria-hidden="true"><circle class="bgc" cx="13" cy="13" r="10"/><circle class="fgc" id="pill-ring" cx="13" cy="13" r="10" stroke-dasharray="62.83" stroke-dashoffset="62.83"/></svg>
+    <span class="cur" id="pill-cur"></span>
+  </button>
+</div>
+<!-- 4 -->
+<nav class="v-margin" id="margin" aria-label="Содержание"><b>Содержание</b></nav>
+<!-- 5 -->
+<button type="button" class="v-up" id="up">↑ К содержанию</button>
+
+<div class="wrap">
+  <article id="article">
+    <h1>Вам не нужен useEffect. Скорее всего</h1>
+    <p class="meta">22 нояб. 2026 · Денис · 12 мин</p>
+    <details class="v-inline" id="inline" open><summary>Содержание</summary><nav class="list" id="inline-list" aria-label="Содержание"></nav></details>
+  </article>
+</div>
+
+<script>
+(() => {
+  const SECTIONS = [
+    ['Главное правило', 'Документация React называет эффекты запасным выходом из модели React. Они нужны, чтобы синхронизировать компонент с чем-то внешним: с виджетом не на React, с сетью, с API браузера. Перед тем как написать useEffect, спросите себя, с какой внешней системой вы синхронизируетесь.'],
+    ['Почему лишний эффект это дорого', 'React рендерит компонент со старым значением, применяет изменения, браузер может успеть нарисовать устаревший кадр, потом запускается эффект, вызывает setState, и всё рендерится ещё раз. Два рендера вместо одного.'],
+    ['Корень проблемы: одна правда в двух местах', 'Каждый раз, когда эффект ставит одно состояние на основе другого, появляются две копии одной информации. Их приходится синхронизировать, и рано или поздно они разъезжаются.'],
+    ['Код, который читается как goto', 'Видите клик, ищете, кто использует состояние, находите эффект выше, он меняет другое состояние, ищете ниже, и через пару прыжков вы снова в начале.'],
+    ['Логика, которая живёт, пока компонент на экране', 'Эффект выполняется, только пока смонтирован компонент. Если важная логика спрятана в эффект, на странице без этого компонента она просто не сработает.'],
+    ['1. Значение можно посчитать', 'Если значение вычисляется из пропсов или другого состояния, его не нужно хранить. Считайте при рендере, а тяжёлое оборачивайте в useMemo.'],
+    ['2. Сбросить состояние при смене пропса', 'Для этого у React есть ключ: другой key значит другой компонент со своим чистым состоянием.'],
+    ['3. Поменять часть состояния', 'Храните идентификатор выбранного элемента, а сам элемент находите при рендере.'],
+    ['4. Реакция на действие пользователя', 'Если код выполняется, потому что пользователь что-то сделал, ему место в обработчике события, а не в эффекте.'],
+    ['5. Цепочки эффектов', 'Посчитайте всё следующее состояние сразу, там, где произошло событие. Один рендер вместо четырёх.'],
+    ['6. Сообщить родителю', 'Вызывайте onChange там же, где меняете состояние, или поднимите состояние к родителю.'],
+    ['7. Инициализация приложения', 'Код, который нужен один раз, выносите из компонентов в точку входа.'],
+    ['8. Подписка на внешнее хранилище', 'Для этого есть useSyncExternalStore, он надёжнее самописного эффекта.'],
+    ['9. Загрузка данных', 'Если грузите в эффекте, то с очисткой от гонок. А лучше доверьте это библиотеке запросов.'],
+    ['Когда useEffect всё-таки нужен', 'Подписки, сторонние виджеты, таймеры, работа с DOM. И у каждого такого эффекта должна быть очистка.'],
+    ['Подведём итоги', 'Значение считаем при рендере, действие делаем в обработчике, сброс делаем ключом. Код становится короче и понятнее.'],
+  ];
+  const art = document.getElementById('article');
+  SECTIONS.forEach(([title, text], i) => {
+    const h = document.createElement('h2');
+    h.id = `s${i}`;
+    h.textContent = title;
+    art.append(h);
+    for (let k = 0; k < 3; k++) {
+      const p = document.createElement('p');
+      p.textContent = text + (k ? ' Это предложение повторено, чтобы раздел был длиннее и было что прокручивать.' : '');
+      art.append(p);
+    }
+  });
+
+  const link = (i, cls = 'toc-link') => `<a class="${cls}" href="#s${i}" data-i="${i}">${SECTIONS[i][0]}</a>`;
+  const all = (cls) => SECTIONS.map((_, i) => link(i, cls)).join('');
+  document.getElementById('rail').innerHTML = SECTIONS.map(([t], i) => `<a href="#s${i}" data-i="${i}" aria-label="${t}"><span>${t}</span></a>`).join('');
+  document.getElementById('bar-list').innerHTML = all();
+  document.getElementById('pill-sheet').innerHTML = all();
+  document.getElementById('margin').insertAdjacentHTML('beforeend', all());
+  document.getElementById('inline-list').innerHTML = all();
+
+  const NOTES = {
+    rail: 'В покое только штрихи справа. Наведи на штрих, и рядом появится название только этого раздела, в свободном поле. Клик ведёт к разделу. Нужен экран шире 1240 px. <span class="need-wide">Сейчас окно уже, расширь его.</span>',
+    bar: 'Когда начинаешь читать, сверху выезжает тонкая строка: название текущего раздела и полоска прогресса. Весь список открывается только по кнопке «Содержание». Работает на любой ширине.',
+    pill: 'Внизу маленькая пилюля с кольцом прогресса и названием раздела. По нажатию снизу выезжает список. Удобно на телефоне, на компьютере тоже не мешает.',
+    margin: 'Список стоит в пустом левом поле, где он ничего не закрывает. Пока прокручиваешь, он приглушается, а когда остановишься или наведёшь, снова становится ярким. Нужен экран шире 1240 px. <span class="need-wide">Сейчас окно уже, расширь его.</span>',
+    inline: 'Никакого плавающего интерфейса: содержание стоит в начале статьи, его можно свернуть. Когда уходишь вниз, справа появляется кнопка «↑ К содержанию».',
+  };
+
+  const root = document.documentElement;
+  const heads = SECTIONS.map((_, i) => document.getElementById(`s${i}`));
+  let current = -1;
+  let ticking = false;
+  let dimTimer = 0;
+
+  function update() {
+    ticking = false;
+    // чтения
+    let idx = 0;
+    heads.forEach((h, i) => { if (h.getBoundingClientRect().top < 120) idx = i; });
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const progress = max > 0 ? scrollY / max : 0;
+    const startRead = art.querySelector('h1').getBoundingClientRect().bottom < 0;
+    const inlineBox = document.getElementById('inline').getBoundingClientRect();
+    // записи
+    document.getElementById('bar').classList.toggle('show', startRead);
+    document.getElementById('bar-prog').style.transform = `scaleX(${progress.toFixed(4)})`;
+    document.getElementById('pill-ring').setAttribute('stroke-dashoffset', (62.83 * (1 - progress)).toFixed(2));
+    document.getElementById('up').classList.toggle('show', inlineBox.bottom < 0);
+    if (idx !== current) {
+      current = idx;
+      document.querySelectorAll('[data-i]').forEach((a) => a.classList.toggle('on', Number(a.dataset.i) === idx));
+      const title = SECTIONS[idx][0];
+      document.getElementById('bar-cur').innerHTML = `<small>${idx + 1}/${SECTIONS.length}</small>${title}`;
+      document.getElementById('pill-cur').innerHTML = `${title}<small>${idx + 1}/${SECTIONS.length}</small>`;
+    }
+  }
+  addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    const m = document.getElementById('margin');
+    m.classList.add('dim');
+    clearTimeout(dimTimer);
+    dimTimer = setTimeout(() => m.classList.remove('dim'), 500);
+  }, { passive: true });
+  addEventListener('resize', () => requestAnimationFrame(update));
+
+  // открытие списков по кнопке
+  const toggle = (box, btn) => {
+    const open = !box.classList.contains('opened');
+    box.classList.toggle('opened', open);
+    btn.setAttribute('aria-expanded', String(open));
+  };
+  document.getElementById('bar-open').addEventListener('click', () => toggle(document.getElementById('bar'), document.getElementById('bar-open')));
+  document.getElementById('pill-btn').addEventListener('click', () => toggle(document.getElementById('pill'), document.getElementById('pill-btn')));
+  document.getElementById('up').addEventListener('click', () => {
+    const d = document.getElementById('inline');
+    d.open = true;
+    d.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  // клик по пункту: плавно едем к разделу и закрываем выпадающие списки
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[data-i]');
+    if (!a) {
+      if (!e.target.closest('#bar, #pill')) ['bar', 'pill'].forEach((id) => document.getElementById(id).classList.remove('opened'));
+      return;
+    }
+    e.preventDefault();
+    heads[Number(a.dataset.i)].scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    ['bar', 'pill'].forEach((id) => document.getElementById(id).classList.remove('opened'));
+  });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') ['bar', 'pill'].forEach((id) => document.getElementById(id).classList.remove('opened')); });
+
+  function pick(v) {
+    root.dataset.v = v;
+    document.querySelectorAll('#seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+    document.getElementById('vnote').innerHTML = NOTES[v];
+    ['bar', 'pill'].forEach((id) => document.getElementById(id).classList.remove('opened'));
+  }
+  document.getElementById('seg').addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (b) pick(b.dataset.v); });
+  pick('rail');
+  update();
+})();
+</script>

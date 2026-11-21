@@ -10,7 +10,6 @@ onPage((signal) => {
 
   const bar = document.querySelector<HTMLElement>('.read-progress span');
   const toc = document.querySelector<HTMLElement>('.toc');
-  const marker = toc?.querySelector<HTMLElement>('.toc-marker');
   const links = toc ? [...toc.querySelectorAll<HTMLAnchorElement>('a[data-toc]')] : [];
   const heads = links.map((a) => document.getElementById(a.dataset.toc!)).filter(Boolean) as HTMLElement[];
   let active = '';
@@ -24,16 +23,16 @@ onPage((signal) => {
     const progress = Math.min(1, Math.max(0, -rect.top / Math.max(1, total)));
     let current = heads[0]?.id ?? '';
     for (const h of heads) if (h.getBoundingClientRect().top <= 120) current = h.id;
-    const link = links.find((a) => a.dataset.toc === current);
-    const linkTop = link?.offsetTop ?? 0;
-    const linkHeight = link?.offsetHeight ?? 0;
     // записи
     if (bar) bar.style.transform = `scaleX(${progress.toFixed(4)})`;
-    if (current !== active && link && marker) {
+    if (current !== active) {
       active = current;
-      links.forEach((a) => a.classList.toggle('on', a === link));
-      marker.style.height = `${linkHeight}px`;
-      marker.style.transform = `translateY(${linkTop}px)`;
+      links.forEach((a) => {
+        const on = a.dataset.toc === current;
+        a.classList.toggle('on', on);
+        if (on) a.setAttribute('aria-current', 'location');
+        else a.removeAttribute('aria-current');
+      });
     }
   }
   const schedule = () => {

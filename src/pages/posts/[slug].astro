@@ -78,10 +78,11 @@ const { author } = SITE;
 
     {toc.length > 2 && (
       <nav class="toc" aria-label="Содержание">
-        <span class="toc-marker" aria-hidden="true"></span>
-        <b>Содержание</b>
+        {/* штрих на каждый раздел; при наведении рядом, в свободном поле, появляется название только этого раздела */}
         {toc.map((h) => (
-          <a href={`#${h.slug}`} data-toc={h.slug} class:list={{ sub: h.depth === 3 }}>{h.text}</a>
+          <a href={`#${h.slug}`} data-toc={h.slug} class:list={{ sub: h.depth === 3 }}>
+            <span>{h.text}</span>
+          </a>
         ))}
       </nav>
     )}
