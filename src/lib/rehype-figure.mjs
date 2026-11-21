@@ -1,5 +1,5 @@
 // Абзац, в котором только картинка, превращается в <figure>; alt становится подписью.
-//   ![Схема сборки](/images/blog-arch.svg)  →  <figure><img …><figcaption>Схема сборки</figcaption></figure>
+//   ![Цикл событий](/images/event-loop.svg)  →  <figure><img …><figcaption>Цикл событий</figcaption></figure>
 export function rehypeFigure() {
   return (tree) => walk(tree);
 }

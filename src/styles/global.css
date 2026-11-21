@@ -32,8 +32,8 @@
 /* подсветка кода: Shiki кладёт цвета тёмной темы в --shiki-dark */
 :root[data-theme="dark"] .astro-code,
 :root[data-theme="dark"] .astro-code span { color: var(--shiki-dark) !important; }
-/* светлые схемы в постах в тёмной теме инвертируем; терминал и так тёмный */
-:root[data-theme="dark"] .md figure img[src$=".svg"]:not([src*="terminal"]) { filter: invert(.92) hue-rotate(180deg); }
+/* светлые схемы в постах в тёмной теме инвертируем */
+:root[data-theme="dark"] .md figure img[src$=".svg"] { filter: invert(.92) hue-rotate(180deg); }
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
