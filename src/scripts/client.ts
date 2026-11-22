@@ -14,6 +14,7 @@ import './reading';
 import './search';
 import './tag-filter';
 import './egg';
+import './to-top';
 
 const STORAGE_KEY = 'blog.likes';
 const counts = new Map<string, number>();

@@ -216,6 +216,28 @@ kbd, .search-kbd { font: 500 11px var(--f-mono); padding: 2px 6px; border-radius
 .md .code:hover .lang, .md .code:focus-within .lang { opacity: 0; }
 @media (hover: none) { .md .copy { opacity: 1; } .md .lang { opacity: 0; } }
 
+/* ---------- кнопка «Наверх» ---------- */
+.to-top {
+  position: fixed; z-index: 25;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  width: 46px; height: 46px; padding: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  border: 0; background: var(--bg); color: var(--fg);
+  box-shadow: 0 10px 28px -14px rgba(0, 0, 0, .45);
+  opacity: 0; transform: translateY(14px) scale(.9); pointer-events: none;
+  transition: opacity .25s, transform .4s var(--ease), background-color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.to-top.show { opacity: 1; transform: none; pointer-events: auto; }
+.to-top:hover { background: var(--soft); }
+.to-top:active { transform: scale(.92); }
+.to-top-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.to-top-ring circle { fill: none; stroke-width: 1.5; }
+.to-top-ring .bg { stroke: var(--line); }
+.to-top-ring .fg { stroke: var(--fg); stroke-linecap: round; }
+.to-top-arrow { transition: transform .3s var(--ease); }
+.to-top:hover .to-top-arrow { transform: translateY(-2px); }
+
 /* ---------- всплывающее уведомление ---------- */
 .toast {
   position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 80;
